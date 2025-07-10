@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Cardano Splitter</title>
+  <style>
+    :root { --gap:1rem; --pad:.5rem; }
+    body { margin:0; font-family:sans-serif; display:flex; flex-direction:column; min-height:100vh; }
+    header, section { padding:var(--pad); }
+    header { background:#222; color:#fff; text-align:center; }
+    button { padding:.5em 1em; margin:var(--pad) 0; }
+    form { display:flex; flex-direction:column; gap:var(--gap); }
+    .row { display:flex; flex-wrap:wrap; gap:.5rem; align-items:center; }
+    input[type=text], input[type=number], select { flex:1; padding:.5em; }
+    @media(min-width:600px){
+      form { width:50%; margin:0 auto; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1 id="title">🔀 Ada Splitter</h1>
+  <p id="description">Split incoming Ada and tokens by %</p>
+  <p id="instructions">Select a wallet and connect to get started.</p>
+  <div class="row" style="justify-content:center; gap:.5rem;">
+    <select id="walletSelect">
+      <option value="">Select Wallet…</option>
+    </select>
+    <button id="connectBtn" disabled>Connect</button>
+  </div>
+</header>
+
+<section id="landing">
+  <button id="deployBtn" disabled>Deploy New Splitter</button>
+  <ul id="setupList"></ul>
+</section>
+
+<section id="formSection" style="display:none;">
+  <form id="splitForm">
+    <!-- your form inputs here… -->
+    <button type="button" id="cancelBtn">Cancel</button>
+  </form>
+</section>
+
+<!-- >>> ESM build of Lucid: use type="module" + import <<< -->
+<script type="module">
+  import { BrowserWallet } from 'https://unpkg.com/@meshsdk/core/dist/browser/index.js';
+  import { Lucid, Blockfrost } from 'https://unpkg.com/lucid-cardano@0.10.11/web/mod.js';
+
+  let lucid, wallet, userPkh;
+
+  const sel = document.getElementById('walletSelect');
+  const btn = document.getElementById('connectBtn');
+
+  // 1) On load: use Mesh SDK to list all installed CIP-30 wallets
+  document.addEventListener('DOMContentLoaded', async () => {
+    // This returns e.g. ['mesh','nami','eternl',...]
+    const installed = await BrowserWallet.getInstalledWallets();
+
+    if (installed.length === 0) {
+      sel.innerHTML = '<option>(no wallets detected)</option>';
+      btn.disabled = true;
+      return;
+    }
+
+    // Put Mesh first in the list, if it’s present
+    installed.sort((a, b) =>
+      a === 'mesh' ? -1 :
+      b === 'mesh' ? 1 : 0
+    );
+
+    // Populate the dropdown
+    sel.innerHTML = '';
+    for (const name of installed) {
+      const o = document.createElement('option');
+      o.value = name;
+      o.textContent = name === 'mesh'
+        ? 'Mesh Wallet'
+        : name.charAt(0).toUpperCase() + name.slice(1);
+      sel.append(o);
+    }
+
+    // Auto-select the first and enable the Connect button
+    sel.value = installed[0];
+    btn.disabled = false;
+  });
+
+  // 2) On Connect: enable via Mesh, then init Lucid with that provider
+  btn.addEventListener('click', async () => {
+    const walletName = sel.value;
+    if (!walletName) return alert('Select a wallet first.');
+
+    try {
+      // Tell the extension to connect
+      const meshWallet = await BrowserWallet.enable(walletName);
+
+      // Now hand the Mesh CIP-30 API straight into Lucid
+      lucid = await Lucid.new(
+        new Blockfrost(
+          'https://cardano-mainnet.blockfrost.io/api/v0',
+          'mainnetehvvvJVoJUAz5DFJJz2L9fHZmkXlXTMP'
+        ),
+        'Mainnet',
+        meshWallet
+      );
+      wallet = lucid.selectWallet(walletName);
+
+      // Grab an address from Mesh (preferred change address)
+      const addr = await meshWallet.getChangeAddress();
+      userPkh = await lucid.utils.validatorHashFromAddress(addr);
+
+      // Update the UI
+      btn.textContent = `Connected: ${walletName}`;
+      btn.disabled = true;
+      sel.disabled = true;
+      document.getElementById('deployBtn').disabled = false;
+    } catch (err) {
+      console.error('Mesh connect failed:', err);
+      alert(`Failed to connect via Mesh:\n${err.message}`);
+    }
+  });
+</script>
+
+
+
+
+</body>
+</html>
