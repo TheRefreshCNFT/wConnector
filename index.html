@@ -3,18 +3,6 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <script type="importmap">
-{
-  "imports": {
-    "@meshsdk/core":     "https://cdn.jsdelivr.net/npm/@meshsdk/core@1.9.0-beta.62/dist/index.min.js",
-    "@meshsdk/common":   "https://cdn.jsdelivr.net/npm/@meshsdk/common@1.9.0-beta.62/dist/index.min.js",
-    "@meshsdk/core-cst": "https://cdn.jsdelivr.net/npm/@meshsdk/core-cst@1.9.0-beta.62/dist/index.min.js",
-    "@meshsdk/provider": "https://cdn.jsdelivr.net/npm/@meshsdk/provider@1.9.0-beta.62/dist/index.min.js",
-    "@meshsdk/transaction":"https://cdn.jsdelivr.net/npm/@meshsdk/transaction@1.9.0-beta.62/dist/index.min.js",
-    "@meshsdk/wallet":   "https://cdn.jsdelivr.net/npm/@meshsdk/wallet@1.9.0-beta.62/dist/index.min.js"
-  }
-}
-</script>
   <title>Cardano Splitter</title>
   <style>
     :root {
@@ -284,29 +272,26 @@
   </div>
 
 <script type="module">
-  // 1) Import Mesh as a bundled module (with all deps) from Skypack
   import { BrowserWallet } from 'https://cdn.skypack.dev/@meshsdk/core@1.9.0-beta.62';
 
   const sel = document.getElementById('walletSelect');
   const btn = document.getElementById('connectBtn');
   let meshWallet, userAddress;
 
-  // Detect installed wallets
   async function detect() {
     const wallets = await BrowserWallet.getInstalledWallets();
-    if (wallets.length === 0) {
+    if (!wallets.length) {
       sel.innerHTML = '<option>(no wallets detected)</option>';
       return;
     }
-    wallets.sort((a, b) => a === 'mesh' ? -1 : b === 'mesh' ? 1 : 0);
+    wallets.sort((a,b)=> a==='mesh'? -1 : b==='mesh'? 1 : 0);
     sel.innerHTML = wallets
-      .map(w => `<option value="${w.name}">${w.name}</option>`)
+      .map(w=>`<option value="${w.name}">${w.name.charAt(0).toUpperCase()+w.name.slice(1)}</option>`)
       .join('');
     sel.value = wallets[0].name;
     btn.disabled = false;
   }
 
-  // Connect to the chosen wallet
   async function connect() {
     const name = sel.value;
     if (!name) return alert('Select a wallet');
