@@ -271,153 +271,59 @@
     </div>
   </div>
 
-  <script type="module">
-  import { BrowserWallet } from './core.js';
+ <script type="module">
+    // 1) Import only the Mesh SDK (bundled with its dependencies)
+    import { BrowserWallet } from './core.js';
 
-    
-    // DOM Elements
-    const walletSelect = document.getElementById('walletSelect');
-    const connectBtn = document.getElementById('connectBtn');
-    const deployBtn = document.getElementById('deployBtn');
-    const walletStatus = document.getElementById('walletStatus');
-    const instructions = document.getElementById('instructions');
-    const walletOptions = document.getElementById('walletOptions');
-    const walletList = document.querySelector('.wallet-list');
-    const setupList = document.getElementById('setupList');
-    
-    // State
-    let connectedWallet = null;
-    let userAddress = null;
-    
-    // Initialize on load
-    document.addEventListener('DOMContentLoaded', async () => {
-      await detectWallets();
-      
-      // Event Listeners
-      connectBtn.addEventListener('click', connectWallet);
-      deployBtn.addEventListener('click', deploySplitter);
-    });
-    
-    // Detect available wallets
-    async function detectWallets() {
-      try {
-        const wallets = await BrowserWallet.getInstalledWallets();
-        
-        if (wallets.length === 0) {
-          instructions.textContent = 'No Cardano wallets detected. Install a wallet extension to continue.';
-          return;
-        }
-        
-        // Clear and populate the dropdown
-        walletSelect.innerHTML = '<option value="">Select Wallet…</option>';
-        wallets.forEach(wallet => {
-          const option = document.createElement('option');
-          option.value = wallet.name;
-          option.textContent = wallet.name;
-          walletSelect.appendChild(option);
-        });
-        
-        // Enable connect button
-        connectBtn.disabled = false;
-        
-        // Create wallet buttons
-        walletList.innerHTML = '';
-        wallets.forEach(wallet => {
-          const walletItem = document.createElement('div');
-          walletItem.className = 'wallet-item';
-          walletItem.innerHTML = `
-            <div class="wallet-icon">${wallet.name.charAt(0)}</div>
-            <div>
-              <div class="wallet-name">${wallet.name}</div>
-              <div>Click to connect</div>
-            </div>
-          `;
-          
-          walletItem.addEventListener('click', () => {
-            walletSelect.value = wallet.name;
-            connectWallet();
-          });
-          
-          walletList.appendChild(walletItem);
-        });
-        
-      } catch (error) {
-        console.error('Error detecting wallets:', error);
-        instructions.textContent = 'Error detecting wallets. Please refresh the page.';
-      }
-    }
-    
-    // Connect to selected wallet
-    async function connectWallet() {
-      const walletName = walletSelect.value;
-      
-      if (!walletName) {
-        alert('Please select a wallet first');
+    const sel = document.getElementById('walletSelect');
+    const btn = document.getElementById('connectBtn');
+    let meshWallet, userAddress;
+
+    // 2) Detect installed wallets
+    async function detect() {
+      const wallets = await BrowserWallet.getInstalledWallets();
+      if (wallets.length === 0) {
+        sel.innerHTML = '<option>(no wallets detected)</option>';
         return;
       }
-      
+      // Put Mesh first
+      wallets.sort((a,b)=> a==='mesh'? -1 : b==='mesh'? 1 : 0);
+
+      // Populate dropdown
+      sel.innerHTML = '';
+      wallets.forEach(w => {
+        const o = document.createElement('option');
+        o.value = w.name;
+        o.textContent = w.name.charAt(0).toUpperCase() + w.name.slice(1);
+        sel.append(o);
+      });
+      sel.value = wallets[0].name;
+      btn.disabled = false;
+    }
+
+    // 3) Connect when clicked
+    async function connect() {
+      const name = sel.value;
+      if (!name) return alert('Select a wallet');
+      btn.disabled = true;
+      btn.textContent = 'Connecting…';
       try {
-        // Show loading state
-        connectBtn.disabled = true;
-        connectBtn.textContent = 'Connecting...';
-        
-        // Connect to wallet
-        connectedWallet = await BrowserWallet.enable(walletName);
-        
-        // Get wallet address
-        userAddress = await connectedWallet.getChangeAddress();
+        meshWallet = await BrowserWallet.enable(name);
+        userAddress = await meshWallet.getChangeAddress();
+        btn.textContent = `Connected: ${name}`;
+        sel.disabled = true;
         console.log('Connected address:', userAddress);
-        
-        // Update UI
-        connectBtn.classList.add('hidden');
-        walletStatus.classList.remove('hidden');
-        walletStatus.innerHTML = `
-          <span class="connected">✓ Connected to ${walletName}</span>
-          <div style="margin-top: 8px;">Address: ${userAddress.substring(0, 20)}...${userAddress.substring(userAddress.length - 10)}</div>
-        `;
-        
-        instructions.textContent = 'Wallet connected successfully!';
-        walletOptions.classList.remove('hidden');
-        deployBtn.disabled = false;
-        
-        // Add to setup list
-        setupList.innerHTML = `
-          <li>
-            <div>Wallet Connected</div>
-            <div class="connected">${walletName}</div>
-          </li>
-          <li>
-            <div>Your Address</div>
-            <div>${userAddress.substring(0, 10)}...${userAddress.substring(userAddress.length - 8)}</div>
-          </li>
-        `;
-        
-      } catch (error) {
-        console.error('Connection failed:', error);
-        alert(`Error: ${error.message}`);
-        connectBtn.disabled = false;
-        connectBtn.textContent = 'Connect Wallet';
+      } catch (e) {
+        console.error(e);
+        alert('Connection failed: ' + e.message);
+        btn.textContent = 'Connect Wallet';
+        btn.disabled = false;
       }
     }
-    
-    // Deploy splitter function
-    function deploySplitter() {
-      alert(`Splitter deployment would start using address:\n${userAddress}\n\n(Mesh wallet functionality fully integrated - next step would be transaction building)`);
-      
-      // Simulate deployment process
-      deployBtn.textContent = 'Deploying...';
-      deployBtn.disabled = true;
-      
-      setTimeout(() => {
-        deployBtn.textContent = 'Deployed Successfully!';
-        setupList.innerHTML += `
-          <li>
-            <div>Splitter Contract</div>
-            <div class="connected">Deployed</div>
-          </li>
-        `;
-      }, 1500);
-    }
+
+    // 4) Wire up
+    document.addEventListener('DOMContentLoaded', detect);
+    btn.addEventListener('click', connect);
   </script>
 </body>
 </html>
