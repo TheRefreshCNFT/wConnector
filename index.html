@@ -283,59 +283,51 @@
     </div>
   </div>
 
- <script type="module">
-    // 1) Import only the Mesh SDK (bundled with its dependencies)
-    import { BrowserWallet } from "@meshsdk/core";
-   
-    const sel = document.getElementById('walletSelect');
-    const btn = document.getElementById('connectBtn');
-    let meshWallet, userAddress;
+<script type="module">
+  // 1) Import Mesh as a bundled module (with all deps) from Skypack
+  import { BrowserWallet } from 'https://cdn.skypack.dev/@meshsdk/core@1.9.0-beta.62';
 
-    // 2) Detect installed wallets
-    async function detect() {
-      const wallets = await BrowserWallet.getInstalledWallets();
-      if (wallets.length === 0) {
-        sel.innerHTML = '<option>(no wallets detected)</option>';
-        return;
-      }
-      // Put Mesh first
-      wallets.sort((a,b)=> a==='mesh'? -1 : b==='mesh'? 1 : 0);
+  const sel = document.getElementById('walletSelect');
+  const btn = document.getElementById('connectBtn');
+  let meshWallet, userAddress;
 
-      // Populate dropdown
-      sel.innerHTML = '';
-      wallets.forEach(w => {
-        const o = document.createElement('option');
-        o.value = w.name;
-        o.textContent = w.name.charAt(0).toUpperCase() + w.name.slice(1);
-        sel.append(o);
-      });
-      sel.value = wallets[0].name;
+  // Detect installed wallets
+  async function detect() {
+    const wallets = await BrowserWallet.getInstalledWallets();
+    if (wallets.length === 0) {
+      sel.innerHTML = '<option>(no wallets detected)</option>';
+      return;
+    }
+    wallets.sort((a, b) => a === 'mesh' ? -1 : b === 'mesh' ? 1 : 0);
+    sel.innerHTML = wallets
+      .map(w => `<option value="${w.name}">${w.name}</option>`)
+      .join('');
+    sel.value = wallets[0].name;
+    btn.disabled = false;
+  }
+
+  // Connect to the chosen wallet
+  async function connect() {
+    const name = sel.value;
+    if (!name) return alert('Select a wallet');
+    btn.disabled = true;
+    btn.textContent = 'Connecting…';
+    try {
+      meshWallet = await BrowserWallet.enable(name);
+      userAddress = await meshWallet.getChangeAddress();
+      btn.textContent = `Connected: ${name}`;
+      sel.disabled = true;
+      console.log('Connected address:', userAddress);
+    } catch (e) {
+      console.error(e);
+      alert('Connection failed: ' + e.message);
+      btn.textContent = 'Connect Wallet';
       btn.disabled = false;
     }
+  }
 
-    // 3) Connect when clicked
-    async function connect() {
-      const name = sel.value;
-      if (!name) return alert('Select a wallet');
-      btn.disabled = true;
-      btn.textContent = 'Connecting…';
-      try {
-        meshWallet = await BrowserWallet.enable(name);
-        userAddress = await meshWallet.getChangeAddress();
-        btn.textContent = `Connected: ${name}`;
-        sel.disabled = true;
-        console.log('Connected address:', userAddress);
-      } catch (e) {
-        console.error(e);
-        alert('Connection failed: ' + e.message);
-        btn.textContent = 'Connect Wallet';
-        btn.disabled = false;
-      }
-    }
-
-    // 4) Wire up
-    document.addEventListener('DOMContentLoaded', detect);
-    btn.addEventListener('click', connect);
-  </script>
+  document.addEventListener('DOMContentLoaded', detect);
+  btn.addEventListener('click', connect);
+</script>
 </body>
 </html>
