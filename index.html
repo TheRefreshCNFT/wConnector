@@ -720,7 +720,7 @@
         const outImageData = targetCtx.createImageData(size, size);
         const outData      = outImageData.data;
 
-        // Mix QR modules with art colors
+        // Mix QR s with art colors
         for (let i = 0; i < qrData.length; i += 4) {
           const r = qrData[i];
           const g = qrData[i + 1];
@@ -819,7 +819,7 @@ generateBtn.addEventListener('click', function() {
   <!-- Wallet connector gate (your working code, only success path changed to show appWrapper) -->
   <!-- Wallet connector gate (your working code, cleaned up to not block Vespr/others) -->
 <script type="module">
-  import { BrowserWallet } from 'https://esm.sh/@meshsdk/core@1.8.14?bundle';
+  import { BrowserWallet } from 'https://esm.sh/@meshsdk/core@1.9.0-beta.62?bundle';
 
   const sel           = document.getElementById('walletSelect');
   const btn           = document.getElementById('connectBtn');
@@ -997,6 +997,7 @@ generateBtn.addEventListener('click', function() {
 
 
  
+
 
 
 
