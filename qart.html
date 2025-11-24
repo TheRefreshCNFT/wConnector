@@ -93,36 +93,6 @@
         textarea::placeholder {
             color: #aaa;
         }
-
-        .input-actions {
-            margin-top: 8px;
-            display: flex;
-            justify-content: flex-end;
-        }
-
-        .paste-btn {
-            border-radius: 999px;
-            border: 1px solid #1a2980;
-            background: #ffffff;
-            color: #1a2980;
-            padding: 6px 14px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s, color 0.2s, transform 0.1s;
-        }
-
-        .paste-btn:hover {
-            background: #1a2980;
-            color: #ffffff;
-            transform: translateY(-1px);
-        }
-
-        .paste-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
         
         .btn {
             background: linear-gradient(to right, #1a2980, #26d0ce);
@@ -272,9 +242,6 @@
                 placeholder="Enter Your Cardano Address"
                 autocomplete="off"
             ></textarea>
-            <div class="input-actions">
-                <button type="button" id="pasteBtn" class="paste-btn">Paste</button>
-            </div>
         </div>
         
         <div class="error" id="errorMsg"></div>
@@ -314,7 +281,6 @@
     <script>
       document.addEventListener('DOMContentLoaded', function() {
         const addressInput     = document.getElementById('cardanoAddress');
-        const pasteBtn         = document.getElementById('pasteBtn');
         const generateBtn      = document.getElementById('generateBtn');
         const qrContainer      = document.getElementById('qrContainer');
         const qrCanvas         = document.getElementById('qrcode');
@@ -597,31 +563,49 @@
           const exportCanvas = document.createElement('canvas');
           renderQArtToCanvas(exportCanvas, pixelSize, lastAddress, lastSeed);
 
-          const dataUrl  = exportCanvas.toDataURL('image/png');
-          const safeAddr = lastAddress.slice(0, 12).replace(/[^a-zA-Z0-9]+/g, '_');
-          const filename = `qart_${safeAddr}_${label}.png`;
-
-          // If inside an iframe, ask parent to handle the download (wallet/in-app browsers)
-          try {
-            if (window.parent && window.parent !== window && window.parent.postMessage) {
-              window.parent.postMessage(
-                {
-                  type: 'qartDownload',
-                  href: dataUrl,
-                  filename: filename,
-                },
-                '*'
-              );
-              return;
-            }
-          } catch (e) {
-            // ignore and fall back to direct download
-          }
-
-          // Direct download for top-level usage
           const link = document.createElement('a');
-          link.download = filename;
-          link.href = dataUrl;
+          const safeAddr = lastAddress.slice(0, 12).replace(/[^a-zA-Z0-9]+/g, '_');
+          link.download = `qart_${safeAddr}_${label}.png`;
+          link.href = exportCanvas.toDataURL('image/png');
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
+        }
+
+        generateBtn.addEventListener('click', function() {
+          const address = addressInput.value.trim();
+          errorMsg.textContent = '';
+          
+          if (!address) {
+            errorMsg.textContent = 'Please enter a Cardano address';
+            return;
+          }
+          
+          if (!isValidCardanoAddress(address)) {
+            errorMsg.textContent = 'Please enter a valid Cardano address starting with "addr1"';
+            return;
+          }
+          
+          generateQRCode(address);
+          qrContainer.style.display = 'block';
+          downloadControls.style.display = 'block';
+          qrContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+
+        // Wire up download buttons
+        const dlButtons = downloadControls.querySelectorAll('.dl-btn');
+        dlButtons.forEach(btn => {
+          btn.addEventListener('click', function() {
+            const size  = parseInt(btn.getAttribute('data-size'), 10);
+            const label = btn.getAttribute('data-label') || (size / 1024 + 'k');
+            downloadAtSize(size, label);
+          });
+        });
+        
+        // Sample address
+        addressInput.value =
+          'Enter Your Cardano Address';
+      });
+    </script>
+</body>
+    </html>
