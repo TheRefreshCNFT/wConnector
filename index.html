@@ -823,49 +823,55 @@
         for (let layer = 0; layer < strokeLayers; layer++) {
           const layerColor = pickColor();
           const steps = 1400;
-          const stepLen = size * 0.018;
+          const stepLen = size * 0.058;
           const thickness = size * (0.0025 + layer * 0.001);
 
           context.lineWidth = thickness;
           context.strokeStyle = layerColor;
           context.globalAlpha = 0.8 + layer * 0.15;
+        
+          // Make streaks smooth with rounded ends & corners
+          context.lineCap = 'round';
+          context.lineJoin = 'round';
+          context.miterLimit = 2; // optional, extra safety against spikes
+
 
           const seed1 = rng() * 20;
           const seed2 = rng() * 20;
 
-          for (let i = 0; i < steps; i++) {
-            let x = rng() * size;
-            let y = rng() * size;
+for (let i = 0; i < steps; i++) {
+  let x = rng() * size;
+  let y = rng() * size;
 
-            const segments = 6 + Math.floor(rng() * 5);
-            context.beginPath();
-            context.moveTo(x, y);
+  const segments = 6 + Math.floor(rng() * 5);
+  context.beginPath();
+  context.moveTo(x, y);
 
-            for (let s = 0; s < segments; s++) {
-              const nx = x / size;
-              const ny = y / size;
+  for (let s = 0; s < segments; s++) {
+    const nx = x / size;
+    const ny = y / size;
 
-              const angle =
-                Math.sin(nx * 6 + seed1) * Math.PI * 0.7 +
-                Math.cos(ny * 5 + seed2) * Math.PI * 0.6 +
-                (nx - 0.5) * Math.PI * 0.4 -
-                (ny - 0.5) * Math.PI * 0.4;
+    const angle =
+      Math.sin(nx * 6 + seed1) * Math.PI * 0.7 +
+      Math.cos(ny * 5 + seed2) * Math.PI * 0.6 +
+      (nx - 0.5) * Math.PI * 0.4 -
+      (ny - 0.5) * Math.PI * 0.4;
 
-              x += Math.cos(angle) * stepLen;
-              y += Math.sin(angle) * stepLen;
+    x += Math.cos(angle) * stepLen;
+    y += Math.sin(angle) * stepLen;
 
-              if (x < -size * 0.05 || x > size * 1.05 || y < -size * 0.05 || y > size * 1.05) {
-                break;
-              }
-              context.lineTo(x, y);
-            }
-            context.stroke();
-          }
-        }
+    if (x < -size * 0.05 || x > size * 1.05 || y < -size * 0.05 || y > size * 1.05) {
+      break;
+    }
+    context.lineTo(x, y);
+  }
+  context.stroke();
+}
+  }
         context.globalAlpha = 1;
 
         // 4) Tiny sparkles
-        const sparkCount = 220;
+        const sparkCount = 0;
         context.fillStyle = 'rgba(255,255,255,0.9)';
         for (let i = 0; i < sparkCount; i++) {
           const sx = rng() * size;
@@ -1156,6 +1162,7 @@ async function connect() {
 
 
  
+
 
 
 
