@@ -844,9 +844,9 @@ for (let i = 0; i < steps; i++) {
   let y = rng() * size;
 
   const segments = 6 + Math.floor(rng() * 5);
-  context.beginPath();
-  context.moveTo(x, y);
+  const pts = [{ x, y }];
 
+  // Collect the raw polyline points
   for (let s = 0; s < segments; s++) {
     const nx = x / size;
     const ny = y / size;
@@ -863,8 +863,32 @@ for (let i = 0; i < steps; i++) {
     if (x < -size * 0.05 || x > size * 1.05 || y < -size * 0.05 || y > size * 1.05) {
       break;
     }
-    context.lineTo(x, y);
+    pts.push({ x, y });
   }
+
+  if (pts.length < 2) continue;
+
+  // Draw a smoothed curve through the points
+  context.beginPath();
+  context.moveTo(pts[0].x, pts[0].y);
+
+  if (pts.length === 2) {
+    // Just a straight segment
+    context.lineTo(pts[1].x, pts[1].y);
+  } else {
+    // Midpoint-based quadratic smoothing
+    for (let j = 1; j < pts.length - 1; j++) {
+      const p0 = pts[j];
+      const p1 = pts[j + 1];
+      const cx = (p0.x + p1.x) / 2;
+      const cy = (p0.y + p1.y) / 2;
+      context.quadraticCurveTo(p0.x, p0.y, cx, cy);
+    }
+    // Ensure we land on the very last point
+    const last = pts[pts.length - 1];
+    context.lineTo(last.x, last.y);
+  }
+
   context.stroke();
 }
   }
@@ -1162,6 +1186,7 @@ async function connect() {
 
 
  
+
 
 
 
