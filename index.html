@@ -833,39 +833,37 @@ generateBtn.addEventListener('click', function() {
 
   let meshWallet, userAddress;
 
-  // RESTORED style: show all wallets Mesh detects (your original behavior),
-  // with a clean sort and no extra provider guard.
-  async function detect() {
-    try {
-      const wallets = BrowserWallet.getInstalledWallets();
-      console.log('[QArt] Installed wallets:', wallets);
+async function detect() {
+  try {
+    const wallets = await BrowserWallet.getInstalledWallets();
 
-      if (!wallets.length) {
-        sel.innerHTML = '<option>(no wallets detected)</option>';
-        return;
-      }
-
-      // Prefer "mesh" first if present (your original idea)
-      wallets.sort((a, b) =>
-        a.name === 'mesh' ? -1 : b.name === 'mesh' ? 1 : 0
-      );
-
-      sel.innerHTML = wallets
-        .map(
-          (w) =>
-            `<option value="${w.name}">${w.name
-              .charAt(0)
-              .toUpperCase()}${w.name.slice(1)}</option>`
-        )
-        .join('');
-
-      sel.value = wallets[0].name;
-      btn.disabled = false;
-    } catch (err) {
-      console.error('Wallet detection failed:', err);
-      sel.innerHTML = '<option>(wallet detection failed)</option>';
+    if (!wallets.length) {
+      sel.innerHTML = '<option>(no wallets detected)</option>';
+      return;
     }
+
+    // Prefer "mesh" if present – but now use .id
+    wallets.sort((a, b) =>
+      a.id === 'mesh' ? -1 : b.id === 'mesh' ? 1 : 0
+    );
+
+    // IMPORTANT: value = wallet.id, label = wallet.name
+    sel.innerHTML = wallets
+      .map(
+        (w) =>
+          `<option value="${w.id}">${w.name}</option>`
+      )
+      .join('');
+
+    // Default to the first wallet's id
+    sel.value = wallets[0].id;
+    btn.disabled = false;
+  } catch (err) {
+    console.error('Wallet detection failed:', err);
+    sel.innerHTML = '<option>(wallet detection failed)</option>';
   }
+}
+
 
   async function checkPolicyAssets() {
     if (!meshWallet) return;
@@ -912,81 +910,50 @@ generateBtn.addEventListener('click', function() {
     }
   }
 
-  async function connect() {
-    const selectedName = sel.value;
-    if (!selectedName) {
-      alert('Select a wallet');
-      return;
-    }
-
-    let name = selectedName;
-    console.log('[QArt] Selected wallet:', name);
-
-    // --- Vespr alias trick (mainly for mobile) ---
-    // If user picked "vespr" but only an Eternl-compatible provider is visible,
-    // treat it like Eternl under the hood.
-    try {
-      const hasCardano = typeof window !== 'undefined' && window.cardano;
-      if (hasCardano) {
-        const lower = name.toLowerCase();
-
-        if (lower === 'vespr') {
-          const hasVespr  = !!window.cardano.vespr;
-          const hasEternl = !!window.cardano.eternl;
-
-          if (!hasVespr && hasEternl) {
-            console.log('[QArt] Vespr alias -> using Eternl provider internally.');
-            name = 'eternl';
-          } else {
-            console.log('[QArt] Vespr provider visible:', {
-              hasVespr,
-              hasEternl,
-              cardanoKeys: Object.keys(window.cardano || {})
-            });
-          }
-        }
-      }
-    } catch (e) {
-      console.warn('[QArt] Error checking Vespr/Eternl providers:', e);
-    }
-    // --- end Vespr alias trick ---
-
-    btn.disabled = true;
-    btn.textContent = 'Connecting…';
-
-    try {
-      // This call should trigger the wallet's permission / unlock UI
-      meshWallet = await BrowserWallet.enable(name);
-      userAddress = await meshWallet.getChangeAddress();
-      btn.textContent = `Connected: ${selectedName}`; // keep label as user choice
-      sel.disabled = true;
-      console.log('Connected address:', userAddress);
-
-      // Pre-fill QArt textarea with connected address
-      const addrField = document.getElementById('cardanoAddress');
-      if (addrField && typeof userAddress === 'string') {
-        addrField.value = userAddress;
-      }
-
-      // Run the policy check in the background right after connection
-      checkPolicyAssets();
-    } catch (e) {
-      console.error('Wallet connection failed:', e);
-
-      let humanMsg =
-        'Connection failed.\n\n' +
-        '• If your wallet uses a PIN/password, open the wallet extension/app and unlock it first.\n' +
-        '• Then come back here and press "Connect Wallet" again.';
-
-      if (e && e.message) {
-        humanMsg = `Connection failed: ${e.message}\n\n` + humanMsg;
-      }
-
-      alert(humanMsg);
-      btn.textContent = 'Connect Wallet';
-      btn.disabled = false;
-    }
+async function connect() {
+  const walletId = sel.value; // this is e.g. "vespr", "nami", "eternl", etc.
+  if (!walletId) {
+    alert('Select a wallet');
+    return;
   }
+
+  btn.disabled = true;
+  btn.textContent = 'Connecting…';
+
+  try {
+    // This should trigger the wallet’s normal permission / unlock UI
+    meshWallet = await BrowserWallet.enable(walletId);
+    userAddress = await meshWallet.getChangeAddress();
+
+    btn.textContent = `Connected: ${walletId}`;
+    sel.disabled = true;
+    console.log('Connected address:', userAddress);
+
+    const addrField = document.getElementById('cardanoAddress');
+    if (addrField && typeof userAddress === 'string') {
+      addrField.value = userAddress;
+    }
+
+    // Run the policy check in the background right after connection
+    checkPolicyAssets();
+  } catch (e) {
+    console.error('Wallet connection failed:', e);
+
+    let humanMsg =
+      'Connection failed.\n\n' +
+      '• If your wallet uses a PIN/password, open the wallet extension/app and unlock it first.\n' +
+      '• Then come back here and press "Connect Wallet" again.';
+
+    if (e && e.message) {
+      humanMsg = `Connection failed: ${e.message}\n\n` + humanMsg;
+    }
+
+    alert(humanMsg);
+    btn.textContent = 'Connect Wallet';
+    btn.disabled = false;
+  }
+}
+
 
   document.addEventListener('DOMContentLoaded', detect);
   btn.addEventListener('click', connect);
@@ -997,6 +964,7 @@ generateBtn.addEventListener('click', function() {
 
 
  
+
 
 
 
