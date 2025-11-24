@@ -238,7 +238,7 @@
     </div>
   </div>
 
-  <script type="module">
+<script type="module">
   import { BrowserWallet } from 'https://esm.sh/@meshsdk/core@1.9.0-beta.62?bundle';
 
   const sel           = document.getElementById('walletSelect');
@@ -253,6 +253,31 @@
   const POLICY_ID = 'adc5716393953403109c335e68c0384238fd19653e960e03afa1fb1f';
 
   let meshWallet, userAddress;
+
+  // Handle download requests from the QArt iframe
+  window.addEventListener('message', (event) => {
+    const data = event.data;
+    if (!data || data.type !== 'qartDownload') return;
+
+    const href = data.href;
+    const filename = data.filename || 'qart.png';
+
+    try {
+      const link = document.createElement('a');
+      link.href = href;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (e) {
+      console.error('Top-level download failed, opening in new tab.', e);
+      try {
+        window.open(href, '_blank');
+      } catch (err) {
+        console.error('window.open also failed:', err);
+      }
+    }
+  });
 
   async function detect() {
     const wallets = await BrowserWallet.getInstalledWallets();
@@ -289,7 +314,6 @@
 
       let count = 0;
       for (const asset of assets) {
-        // Each entry here is a distinct asset (unit) in the wallet
         if (asset.policyId === POLICY_ID) {
           count++;
         }
@@ -341,7 +365,7 @@
     btn.textContent = 'Connecting…';
     try {
       meshWallet = await BrowserWallet.enable(name);
-      userAddress = await meshWallet.getChangeAddress(); // address from the connected wallet
+      userAddress = await meshWallet.getChangeAddress();
       btn.textContent = `Connected: ${name}`;
       sel.disabled = true;
       console.log('Connected address:', userAddress);
@@ -361,4 +385,5 @@
 </script>
 </body>
 </html>
+
 
