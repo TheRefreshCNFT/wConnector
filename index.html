@@ -25,7 +25,7 @@
       display: none !important;
     }
 
-    /* ===== QArt App Styles (same as your current qart.html, with tiny additions) ===== */
+    /* ===== QArt App Styles (your current qart.html styles) ===== */
 
     .container {
       background: rgba(255, 255, 255, 0.92);
@@ -307,8 +307,8 @@
       flex-wrap: wrap;
       gap: 0.75rem;
       align-items: center;
-      margin-bottom: 0.75rem;
       justify-content: center;
+      margin-bottom: 0.75rem;
     }
 
     #walletSelect {
@@ -317,6 +317,7 @@
       border: 1px solid #ccd5e0;
       font-size: 0.95rem;
       min-width: 160px;
+      background: #fff;
     }
 
     #connectBtn {
@@ -383,8 +384,8 @@
   </style>
 </head>
 <body>
-  <!-- QArt app (initially hidden behind the gate overlay) -->
-  <div id="appContainer" class="hidden">
+  <!-- QArt app (same structure as your current qart.html) -->
+  <div id="appContainer">
     <div class="container">
       <header>
         <div class="cardano-logo">ADA</div>
@@ -436,10 +437,10 @@
     </div>
   </div>
 
-  <!-- Wallet gate overlay -->
-  <div id="gateOverlay" class="gate-overlay">
+  <!-- Wallet gate overlay on top -->
+  <div id="walletOverlay" class="gate-overlay">
     <div class="gate-card">
-      <h2 class="gate-title">QArt Code Gen Access</h2>
+      <h2 class="gate-title">QArt Code Gen</h2>
       <p class="gate-subtitle">Fre5h holders only</p>
       <p class="gate-info">
         Connect a Cardano wallet that holds <strong>10 or more assets</strong> from the Fre5h policy
@@ -453,17 +454,17 @@
         <button id="connectBtn" disabled>Connect Wallet</button>
       </div>
 
-      <div id="walletStatus"></div>
+      <div id="walletStatus" class="hidden"></div>
       <div id="accessMessage"></div>
     </div>
   </div>
 
-  <!-- QRious library for real QR code generation -->
+  <!-- QRious library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
 
-  <!-- QArt app script (same logic as your current file, plus paste + setQartAddress) -->
+  <!-- QArt logic: this is your current qart.js, plus paste + setQartAddress -->
   <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function() {
       const addressInput     = document.getElementById('cardanoAddress');
       const pasteBtn         = document.getElementById('pasteBtn');
       const generateBtn      = document.getElementById('generateBtn');
@@ -522,8 +523,6 @@
             case b: h = (r - g) / d + 4; break;
           }
         }
-        if (h < 0) h += 1;
-        if (h > 1) h -= 1;
         return [h, s, l];
       }
 
@@ -549,7 +548,7 @@
         return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
       }
 
-      // --- Complex random art pattern each time (seeded RNG) ---
+      // --- Complex random art pattern each time (now using seeded RNG) ---
       function drawArtPattern(context, size, rng) {
         context.clearRect(0, 0, size, size);
 
@@ -738,4 +737,8 @@
         lastSeed = Math.floor(Math.random() * 1e9);
         lastAddress = text;
         renderQArtToCanvas(qrCanvas, size, text, lastSeed);
-     
+      }
+
+      function downloadAtSize(pixelSize, label) {
+        if (!lastAddress
+
