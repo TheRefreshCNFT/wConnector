@@ -46,7 +46,7 @@
       padding: 20px;
       display: flex;
       justify-content: center;
-      align-items: center;
+      align-items: flex-start;
       background: linear-gradient(135deg, #1a2980, #26d0ce);
       overflow: auto;
     }
@@ -780,25 +780,26 @@
         document.body.removeChild(link);
       }
 
-      generateBtn.addEventListener('click', function() {
-        const address = addressInput.value.trim();
-        errorMsg.textContent = '';
-        
-        if (!address) {
-          errorMsg.textContent = 'Please enter a Cardano address';
-          return;
-        }
-        
-        if (!isValidCardanoAddress(address)) {
-          errorMsg.textContent = 'Please enter a valid Cardano address starting with "addr1"';
-          return;
-        }
-        
-        generateQRCode(address);
-        qrContainer.style.display = 'block';
-        downloadControls.style.display = 'block';
-        qrContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      });
+generateBtn.addEventListener('click', function() {
+  const address = addressInput.value.trim();
+  errorMsg.textContent = '';
+  
+  if (!address) {
+    errorMsg.textContent = 'Please enter a Cardano address';
+    return;
+  }
+  
+  if (!isValidCardanoAddress(address)) {
+    errorMsg.textContent = 'Please enter a valid Cardano address starting with "addr1"';
+    return;
+  }
+  
+  generateQRCode(address);
+  qrContainer.style.display = 'block';
+  downloadControls.style.display = 'block';
+  // no auto-scroll – user can scroll up/down freely
+});
+
 
       // Wire up download buttons
       const dlButtons = downloadControls.querySelectorAll('.dl-btn');
@@ -931,5 +932,6 @@
 
 
  
+
 
 
