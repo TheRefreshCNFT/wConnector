@@ -983,23 +983,40 @@ for (let i = 0; i < steps; i++) {
         renderQArtToCanvas(qrCanvas, size, text, lastSeed);
       }
 
-      function downloadAtSize(pixelSize, label) {
-        if (!lastAddress || lastSeed === null) {
-          alert('Generate a QArt Code first.');
-          return;
-        }
+function downloadAtSize(pixelSize, label) {
+  if (!lastAddress || lastSeed === null) {
+    alert('Generate a QArt Code first.');
+    return;
+  }
 
-        const exportCanvas = document.createElement('canvas');
-        renderQArtToCanvas(exportCanvas, pixelSize, lastAddress, lastSeed);
+  const exportCanvas = document.createElement('canvas');
+  renderQArtToCanvas(exportCanvas, pixelSize, lastAddress, lastSeed);
 
-        const link = document.createElement('a');
-        const safeAddr = lastAddress.slice(0, 12).replace(/[^a-zA-Z0-9]+/g, '_');
-        link.download = `qart_${safeAddr}_${label}.png`;
-        link.href = exportCanvas.toDataURL('image/png');
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }
+  const dataUrl = exportCanvas.toDataURL('image/png');
+  const safeAddr = lastAddress.slice(0, 12).replace(/[^a-zA-Z0-9]+/g, '_');
+  const filename = `qart_${safeAddr}_${label}.png`;
+
+  // In-wallet / in-app browsers often block programmatic downloads.
+  // Fallback: navigate directly to the image so the user can long-press / save.
+  if (isInWalletBrowser()) {
+    // Option 1: navigate the current tab to the image
+    window.location.href = dataUrl;
+
+    // (Optional) or this instead, if the wallet allows new tabs:
+    // window.open(dataUrl, '_blank');
+
+    return;
+  }
+
+  // Normal browser / desktop extension: use a real download
+  const link = document.createElement('a');
+  link.download = filename;
+  link.href = dataUrl;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
 
 generateBtn.addEventListener('click', function() {
   const address = addressInput.value.trim();
@@ -1186,6 +1203,7 @@ async function connect() {
 
 
  
+
 
 
 
