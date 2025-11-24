@@ -266,13 +266,14 @@
       flex-direction: column;
     }
 
-    header {
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      color: white;
-      text-align: center;
-      padding: 2rem var(--pad);
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
+header {
+  position: relative;
+  background: transparent;
+  color: white;
+  text-align: center;
+  padding: 2rem var(--pad) 1.5rem;
+  box-shadow: none;
+}
 
     h1 {
       font-size: 2.5rem;
@@ -389,6 +390,133 @@
       text-decoration: underline;
     }
 
+    /* --- Refreshed wallet gate look --- */
+
+/* Gate background – dark, subtle gradient */
+#gateOverlay {
+  background: radial-gradient(circle at top left, #202738 0, #050810 55%, #020308 100%);
+  color: #e4e8ff;
+}
+
+/* Layout inside header */
+header .container {
+  max-width: 860px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Logo in top-left corner */
+.brand-logo {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  width: 52px;
+  height: auto;
+  padding: 0.25rem;
+  background: rgba(5, 8, 16, 0.9);
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.55);
+}
+
+/* Titles + text */
+header h1 {
+  font-size: 2.1rem;
+  letter-spacing: 0.04em;
+}
+
+#description {
+  font-size: 1rem;
+  opacity: 0.9;
+}
+
+#instructions {
+  font-size: 0.95rem;
+  color: #a9b5ff;
+}
+
+/* Card: glassy panel */
+.card {
+  background: rgba(5, 10, 24, 0.9);
+  border-radius: 18px;
+  border: 1px solid rgba(120, 141, 255, 0.25);
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.75),
+    0 0 0 1px rgba(255, 255, 255, 0.02);
+  color: #e4e8ff;
+  backdrop-filter: blur(10px);
+}
+
+/* Wallet row */
+.row {
+  margin-top: 0.5rem;
+}
+
+select,
+#connectBtn {
+  border-radius: 999px;
+}
+
+/* Wallet dropdown */
+select {
+  background: rgba(3, 7, 20, 0.9);
+  border: 1px solid rgba(96, 125, 255, 0.6);
+  color: #e4e8ff;
+}
+
+/* Connect button – pill, gradient */
+#connectBtn {
+  background: linear-gradient(135deg, #ff3366, #ffc857);
+  color: #050814;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+}
+
+#connectBtn:hover {
+  background: linear-gradient(135deg, #ff4b80, #ffd46b);
+  transform: translateY(-1px) scale(1.01);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.7);
+}
+
+/* Status pill */
+#walletStatus {
+  background: rgba(9, 16, 40, 0.9);
+  border-radius: 999px;
+  border: 1px solid rgba(106, 255, 183, 0.4);
+  color: #a7ffcb;
+}
+
+/* Access message */
+.access-message {
+  color: #b7c3ff;
+}
+
+.access-message.error {
+  color: #ff8b94;
+}
+
+.access-message a {
+  color: #ffc857;
+}
+
+/* Mobile tweaks for header/card */
+@media (max-width: 600px) {
+  header .container {
+    padding-top: 1.5rem;
+  }
+
+  header h1 {
+    font-size: 1.9rem;
+  }
+
+  .card {
+    margin-top: 1.5rem;
+    padding: 1.5rem;
+  }
+}
+
+
     @media(max-width: 600px){
       .row {
         flex-direction: column;
@@ -450,11 +578,16 @@
     </div>
   </div>
 
+
   <!-- WALLET GATE OVERLAY -->
   <div id="gateOverlay">
+    <!-- Logo in top-left corner -->
+    <img src="RF5.png" alt="Fre5h Logo" class="brand-logo">
+
     <header>
       <div class="container">
         <h1>QArt Codes</h1>
+
         <p id="description">Exclusive access for peeps who get Fre5h!</p>
         <p id="instructions">Connect a Cardano wallet that holds at least 10 OG The Refresh.</p>
 
@@ -964,6 +1097,7 @@ async function connect() {
 
 
  
+
 
 
 
