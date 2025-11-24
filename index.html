@@ -32,9 +32,19 @@
       display: flex;
       flex-direction: column;
       min-height: 100vh;
-      background-color: var(--bg);
+      background-color: #000; /* app background will show once gate is gone */
       color: var(--text);
       line-height: 1.6;
+    }
+
+    /* --- GATE OVERLAY --- */
+    #gateOverlay {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
     }
 
     header {
@@ -166,35 +176,60 @@
         align-items: stretch;
       }
     }
+
+    /* --- APP WRAPPER (underneath overlay) --- */
+    #appWrapper {
+      flex: 1;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    #qartFrame {
+      border: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
   </style>
 </head>
 <body>
-  <header>
-    <div class="container">
-      <h1>QArt Code Gen</h1>
-      <p id="description">Exclusive access for Fre5h holders</p>
-      <p id="instructions">Connect a Cardano wallet that holds at least 10 assets from the Fre5h policy to enter.</p>
 
-      <div class="row">
-        <select id="walletSelect">
-          <option value="">Select Wallet…</option>
-          <!-- Wallets will be populated dynamically -->
-        </select>
-        <button id="connectBtn" disabled>Connect Wallet</button>
+  <!-- APP AREA (hidden until gate passes) -->
+  <div id="appWrapper" class="hidden">
+    <!-- Load your existing QArt app here -->
+    <iframe id="qartFrame" src=""></iframe>
+  </div>
+
+  <!-- WALLET GATE OVERLAY -->
+  <div id="gateOverlay">
+    <header>
+      <div class="container">
+        <h1>QArt Code Gen</h1>
+        <p id="description">Exclusive access for Fre5h holders</p>
+        <p id="instructions">Connect a Cardano wallet that holds at least 10 assets from the Fre5h policy to enter.</p>
+
+        <div class="row">
+          <select id="walletSelect">
+            <option value="">Select Wallet…</option>
+            <!-- Wallets will be populated dynamically -->
+          </select>
+          <button id="connectBtn" disabled>Connect Wallet</button>
+        </div>
+
+        <div id="walletStatus" class="hidden"></div>
       </div>
+    </header>
 
-      <div id="walletStatus" class="hidden"></div>
-    </div>
-  </header>
-
-  <div class="container">
-    <div class="card">
-      <h2>Access Gate</h2>
-      <p>
-        This gate checks your connected wallet for Fre5h assets from the required policy.  
-        If 10 or more are found, you’ll be taken directly into the QArt Code Gen app.
-      </p>
-      <p id="accessMessage" class="access-message"></p>
+    <div class="container">
+      <div class="card">
+        <h2>Access Gate</h2>
+        <p>
+          This gate checks your connected wallet for Fre5h assets from the required policy.
+          If 10 or more are found, the QArt Code Gen app will open.
+        </p>
+        <p id="accessMessage" class="access-message"></p>
+      </div>
     </div>
   </div>
 
@@ -205,6 +240,9 @@
     const btn           = document.getElementById('connectBtn');
     const walletStatus  = document.getElementById('walletStatus');
     const accessMessage = document.getElementById('accessMessage');
+    const gateOverlay   = document.getElementById('gateOverlay');
+    const appWrapper    = document.getElementById('appWrapper');
+    const qartFrame     = document.getElementById('qartFrame');
 
     // Fixed policy ID to check (no user prompt)
     const POLICY_ID = 'adc5716393953403109c335e68c0384238fd19653e960e03afa1fb1f';
@@ -238,6 +276,7 @@
       walletStatus.classList.remove('hidden');
       walletStatus.textContent = 'Checking Wallet…';
       accessMessage.textContent = '';
+      accessMessage.classList.remove('error');
 
       try {
         // Mesh aggregates across all addresses in the wallet
@@ -254,13 +293,12 @@
         if (count >= 10) {
           walletStatus.textContent =
             `Found ${count} asset${count === 1 ? '' : 's'} from the policy in this wallet. ✅ Access granted.`;
-          accessMessage.innerHTML = '<strong>Loading QArt Code Gen…</strong>';
+          accessMessage.innerHTML = '<strong>Access granted. Loading QArt Code Gen…</strong>';
 
-          // Redirect into the QArt app (same folder as this file)
-          // Change "qart.html" below if your app file has a different name/path
-          setTimeout(() => {
-            window.location.href = 'qart.html';
-          }, 800);
+          // Load the app into the iframe and remove the gate overlay
+          qartFrame.src = 'qart.html'; // make sure qart.html is in the same folder
+          appWrapper.classList.remove('hidden');
+          gateOverlay.classList.add('hidden');
         } else {
           walletStatus.textContent =
             `Found ${count} asset${count === 1 ? '' : 's'} from the policy in this wallet.`;
