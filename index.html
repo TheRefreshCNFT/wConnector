@@ -36,22 +36,20 @@
       background-color: #000; /* app background will show once gate is gone */
       color: var(--text);
       line-height: 1.6;
-      overflow: hidden; /* prevent outer scrollbars, app handles its own */
     }
 
     /* --- APP AREA (QArt app under overlay) --- */
-    #appWrapper {
-      position: fixed;
-      inset: 0;
-      padding: 24px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background:
-        radial-gradient(circle at top left, #252b42 0, #050810 55%, #020308 100%);
-      overflow: auto;
-    }
-
+#appWrapper {
+  position: relative;
+  min-height: 100vh;
+  padding: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background:
+    radial-gradient(circle at top left, #252b42 0, #050810 55%, #020308 100%);
+  overflow: visible;
+}
     .qart-container {
       background: var(--card-bg);
       border-radius: 22px;
@@ -1158,6 +1156,7 @@ async function connect() {
 
 
  
+
 
 
 
