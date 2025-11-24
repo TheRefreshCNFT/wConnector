@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Cardano Splitter</title>
+  <title>QArt Code Gen – Access</title>
   <style>
     :root {
       --gap: 1rem;
@@ -19,13 +19,13 @@
       --success: #4CAF50;
       --error: #f44336;
     }
-    
+
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
     }
-    
+
     body {
       margin: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -36,7 +36,7 @@
       color: var(--text);
       line-height: 1.6;
     }
-    
+
     header {
       background: linear-gradient(135deg, var(--primary), var(--secondary));
       color: white;
@@ -44,23 +44,23 @@
       padding: 2rem var(--pad);
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
-    
+
     h1 {
       font-size: 2.5rem;
       margin-bottom: 0.5rem;
     }
-    
+
     #description {
       font-size: 1.2rem;
       opacity: 0.9;
       margin-bottom: 1.5rem;
     }
-    
+
     #instructions {
       font-size: 1rem;
       margin: 1rem 0;
     }
-    
+
     #walletStatus {
       background: rgba(255,255,255,0.15);
       border-radius: 50px;
@@ -70,14 +70,14 @@
       font-weight: 500;
       backdrop-filter: blur(5px);
     }
-    
+
     .container {
       max-width: 800px;
       margin: 0 auto;
       width: 100%;
       padding: 0 var(--pad);
     }
-    
+
     .card {
       background: var(--card-bg);
       border-radius: 12px;
@@ -85,7 +85,7 @@
       padding: 2rem;
       margin: 2rem auto;
     }
-    
+
     .row {
       display: flex;
       flex-wrap: wrap;
@@ -93,7 +93,7 @@
       align-items: center;
       margin-bottom: 1rem;
     }
-    
+
     button {
       padding: 0.8rem 1.5rem;
       border: none;
@@ -107,36 +107,23 @@
       justify-content: center;
       gap: 0.5rem;
     }
-    
+
     #connectBtn {
       background: white;
       color: var(--primary);
     }
-    
+
     #connectBtn:hover {
       background: #f5f5f5;
       transform: translateY(-2px);
     }
-    
+
     #connectBtn:disabled {
       opacity: 0.6;
       cursor: not-allowed;
       transform: none;
     }
-    
-    #deployBtn {
-      background: var(--primary);
-      color: white;
-      width: 100%;
-      padding: 1rem;
-      font-size: 1.1rem;
-    }
-    
-    #deployBtn:hover {
-      background: var(--primary-dark);
-      transform: translateY(-2px);
-    }
-    
+
     select, input {
       padding: 0.8rem;
       border: 1px solid var(--border);
@@ -144,89 +131,36 @@
       font-size: 1rem;
       width: 100%;
     }
-    
+
     select {
       flex: 1;
       background: white;
     }
-    
-    .wallet-list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
-      margin-top: 1.5rem;
-    }
-    
-    .wallet-item {
-      background: white;
-      border-radius: 8px;
-      padding: 1rem;
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      cursor: pointer;
-      transition: all 0.2s;
-      width: calc(50% - 0.5rem);
-      border: 1px solid var(--border);
-    }
-    
-    .wallet-item:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-      border-color: var(--primary);
-    }
-    
-    .wallet-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 8px;
-      background: #f0f0f0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.5rem;
-    }
-    
-    .wallet-name {
-      font-weight: 600;
-    }
-    
-    #setupList {
-      list-style: none;
-      margin-top: 1.5rem;
-    }
-    
-    #setupList li {
-      padding: 0.8rem;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-    }
-    
-    .connected {
-      color: var(--success);
-      font-weight: 600;
-    }
-    
+
     .hidden {
       display: none !important;
     }
-    
-    .success-message {
-      background: rgba(76, 175, 80, 0.1);
-      border: 1px solid var(--success);
-      color: var(--success);
-      padding: 1rem;
-      border-radius: 8px;
-      margin-top: 1.5rem;
-      text-align: center;
+
+    .access-message {
+      margin-top: 1rem;
+      font-size: 1rem;
+      color: var(--text-light);
     }
-    
+
+    .access-message strong {
+      color: var(--success);
+    }
+
+    .access-message.error {
+      color: var(--error);
+    }
+
+    .access-message a {
+      color: var(--primary-dark);
+      text-decoration: underline;
+    }
+
     @media(max-width: 600px){
-      .wallet-item {
-        width: 100%;
-      }
-      
       .row {
         flex-direction: column;
         align-items: stretch;
@@ -237,10 +171,10 @@
 <body>
   <header>
     <div class="container">
-      <h1>🔀 Ada Splitter</h1>
-      <p id="description">Split incoming Ada and tokens by percentage</p>
-      <p id="instructions">Select a wallet to connect and get started</p>
-      
+      <h1>QArt Code Gen</h1>
+      <p id="description">Exclusive access for Fre5h holders</p>
+      <p id="instructions">Connect a Cardano wallet that holds at least 10 assets from the Fre5h policy to enter.</p>
+
       <div class="row">
         <select id="walletSelect">
           <option value="">Select Wallet…</option>
@@ -248,119 +182,125 @@
         </select>
         <button id="connectBtn" disabled>Connect Wallet</button>
       </div>
-      
+
       <div id="walletStatus" class="hidden"></div>
     </div>
   </header>
-  
+
   <div class="container">
     <div class="card">
-      <h2>Create New Splitter</h2>
-      <p>Configure how you want to split incoming assets</p>
-      
-      <div id="walletOptions" class="hidden">
-        <p class="success-message">Wallet connected successfully!</p>
-        <div class="wallet-list">
-          <!-- Wallet options will appear here -->
-        </div>
-      </div>
-      
-      <button id="deployBtn" disabled>Deploy New Splitter</button>
-      
-      <ul id="setupList"></ul>
+      <h2>Access Gate</h2>
+      <p>
+        This gate checks your connected wallet for Fre5h assets from the required policy.  
+        If 10 or more are found, you’ll be taken directly into the QArt Code Gen app.
+      </p>
+      <p id="accessMessage" class="access-message"></p>
     </div>
   </div>
 
-<script type="module">
-  import { BrowserWallet } from 'https://esm.sh/@meshsdk/core@1.9.0-beta.62?bundle';
+  <script type="module">
+    import { BrowserWallet } from 'https://esm.sh/@meshsdk/core@1.9.0-beta.62?bundle';
 
-  const sel = document.getElementById('walletSelect');
-  const btn = document.getElementById('connectBtn');
-  const walletStatus = document.getElementById('walletStatus');
+    const sel           = document.getElementById('walletSelect');
+    const btn           = document.getElementById('connectBtn');
+    const walletStatus  = document.getElementById('walletStatus');
+    const accessMessage = document.getElementById('accessMessage');
 
-  // Fixed policy ID to check (no user prompt)
-  const POLICY_ID = 'adc5716393953403109c335e68c0384238fd19653e960e03afa1fb1f';
+    // Fixed policy ID to check (no user prompt)
+    const POLICY_ID = 'adc5716393953403109c335e68c0384238fd19653e960e03afa1fb1f';
 
-  let meshWallet, userAddress;
+    let meshWallet, userAddress;
 
-  async function detect() {
-    const wallets = await BrowserWallet.getInstalledWallets();
-    if (!wallets.length) {
-      sel.innerHTML = '<option>(no wallets detected)</option>';
-      return;
-    }
-    wallets.sort((a, b) => (a === 'mesh' ? -1 : b === 'mesh' ? 1 : 0));
-    sel.innerHTML = wallets
-      .map(
-        (w) =>
-          `<option value="${w.name}">${w.name
-            .charAt(0)
-            .toUpperCase()}${w.name.slice(1)}</option>`
-      )
-      .join('');
-    sel.value = wallets[0].name;
-    btn.disabled = false;
-  }
-
-  async function checkPolicyAssets() {
-    if (!meshWallet) return;
-
-    // Show "Checking Wallet" while the scan is running
-    walletStatus.classList.remove('hidden');
-    walletStatus.textContent = 'Checking Wallet…';
-
-    try {
-      // Mesh aggregates across all addresses in the wallet
-      const assets = await meshWallet.getAssets();
-
-      let count = 0;
-      for (const asset of assets) {
-        // Each entry here is a distinct asset (unit) in the wallet
-        if (asset.policyId === POLICY_ID) {
-          count++;
-        }
+    async function detect() {
+      const wallets = await BrowserWallet.getInstalledWallets();
+      if (!wallets.length) {
+        sel.innerHTML = '<option>(no wallets detected)</option>';
+        return;
       }
-
-      if (count >= 10) {
-        walletStatus.textContent =
-          `Found ${count} asset${count === 1 ? '' : 's'} from the policy in this wallet. ` +
-          `✅ Requirement met (10+).`;
-      } else {
-        walletStatus.textContent =
-          `Found ${count} asset${count === 1 ? '' : 's'} from the policy in this wallet. ` +
-          `❌ Requirement not met (need at least 10).`;
-      }
-    } catch (err) {
-      console.error(err);
-      walletStatus.textContent = 'Error checking wallet assets.';
-    }
-  }
-
-  async function connect() {
-    const name = sel.value;
-    if (!name) return alert('Select a wallet');
-    btn.disabled = true;
-    btn.textContent = 'Connecting…';
-    try {
-      meshWallet = await BrowserWallet.enable(name);
-      userAddress = await meshWallet.getChangeAddress();
-      btn.textContent = `Connected: ${name}`;
-      sel.disabled = true;
-      console.log('Connected address:', userAddress);
-
-      // Run the policy check in the background right after connection
-      checkPolicyAssets();
-    } catch (e) {
-      console.error(e);
-      alert('Connection failed: ' + e.message);
-      btn.textContent = 'Connect Wallet';
+      // Keep same sort behavior you already had
+      wallets.sort((a, b) => (a === 'mesh' ? -1 : b === 'mesh' ? 1 : 0));
+      sel.innerHTML = wallets
+        .map(
+          (w) =>
+            `<option value="${w.name}">${w.name
+              .charAt(0)
+              .toUpperCase()}${w.name.slice(1)}</option>`
+        )
+        .join('');
+      sel.value = wallets[0].name;
       btn.disabled = false;
     }
-  }
 
-  document.addEventListener('DOMContentLoaded', detect);
-  btn.addEventListener('click', connect);
-</script>
+    async function checkPolicyAssets() {
+      if (!meshWallet) return;
+
+      // Show "Checking Wallet" while the scan is running
+      walletStatus.classList.remove('hidden');
+      walletStatus.textContent = 'Checking Wallet…';
+      accessMessage.textContent = '';
+
+      try {
+        // Mesh aggregates across all addresses in the wallet
+        const assets = await meshWallet.getAssets();
+
+        let count = 0;
+        for (const asset of assets) {
+          // Each entry here is a distinct asset (unit) in the wallet
+          if (asset.policyId === POLICY_ID) {
+            count++;
+          }
+        }
+
+        if (count >= 10) {
+          walletStatus.textContent =
+            `Found ${count} asset${count === 1 ? '' : 's'} from the policy in this wallet. ✅ Access granted.`;
+          accessMessage.innerHTML = '<strong>Loading QArt Code Gen…</strong>';
+
+          // Redirect into the QArt app (same folder as this file)
+          // Change "qart.html" below if your app file has a different name/path
+          setTimeout(() => {
+            window.location.href = 'qart.html';
+          }, 800);
+        } else {
+          walletStatus.textContent =
+            `Found ${count} asset${count === 1 ? '' : 's'} from the policy in this wallet.`;
+          accessMessage.classList.add('error');
+          accessMessage.innerHTML =
+            `Sorry you don&#39;t have the required assets, get Fre5h ` +
+            `<a href="https://www.jpg.store/collection/therefresh" target="_blank" rel="noopener noreferrer">here</a>.`;
+        }
+      } catch (err) {
+        console.error(err);
+        walletStatus.textContent = 'Error checking wallet assets.';
+        accessMessage.classList.add('error');
+        accessMessage.textContent = 'An error occurred while checking your wallet. Please try again.';
+      }
+    }
+
+    async function connect() {
+      const name = sel.value;
+      if (!name) return alert('Select a wallet');
+      btn.disabled = true;
+      btn.textContent = 'Connecting…';
+      try {
+        meshWallet = await BrowserWallet.enable(name);
+        userAddress = await meshWallet.getChangeAddress();
+        btn.textContent = `Connected: ${name}`;
+        sel.disabled = true;
+        console.log('Connected address:', userAddress);
+
+        // Run the policy check in the background right after connection
+        checkPolicyAssets();
+      } catch (e) {
+        console.error(e);
+        alert('Connection failed: ' + e.message);
+        btn.textContent = 'Connect Wallet';
+        btn.disabled = false;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', detect);
+    btn.addEventListener('click', connect);
+  </script>
 </body>
 </html>
-
