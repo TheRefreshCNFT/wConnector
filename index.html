@@ -276,6 +276,11 @@
 
   const sel = document.getElementById('walletSelect');
   const btn = document.getElementById('connectBtn');
+  const walletStatus = document.getElementById('walletStatus');
+
+  // Fixed policy ID to check (no user prompt)
+  const POLICY_ID = 'adc5716393953403109c335e68c0384238fd19653e960e03afa1fb1f';
+
   let meshWallet, userAddress;
 
   async function detect() {
@@ -284,12 +289,51 @@
       sel.innerHTML = '<option>(no wallets detected)</option>';
       return;
     }
-    wallets.sort((a,b)=> a==='mesh'? -1 : b==='mesh'? 1 : 0);
+    wallets.sort((a, b) => (a === 'mesh' ? -1 : b === 'mesh' ? 1 : 0));
     sel.innerHTML = wallets
-      .map(w=>`<option value="${w.name}">${w.name.charAt(0).toUpperCase()+w.name.slice(1)}</option>`)
+      .map(
+        (w) =>
+          `<option value="${w.name}">${w.name
+            .charAt(0)
+            .toUpperCase()}${w.name.slice(1)}</option>`
+      )
       .join('');
     sel.value = wallets[0].name;
     btn.disabled = false;
+  }
+
+  async function checkPolicyAssets() {
+    if (!meshWallet) return;
+
+    // Show "Checking Wallet" while the scan is running
+    walletStatus.classList.remove('hidden');
+    walletStatus.textContent = 'Checking Wallet…';
+
+    try {
+      // Mesh aggregates across all addresses in the wallet
+      const assets = await meshWallet.getAssets();
+
+      let count = 0;
+      for (const asset of assets) {
+        // Each entry here is a distinct asset (unit) in the wallet
+        if (asset.policyId === POLICY_ID) {
+          count++;
+        }
+      }
+
+      if (count >= 10) {
+        walletStatus.textContent =
+          `Found ${count} asset${count === 1 ? '' : 's'} from the policy in this wallet. ` +
+          `✅ Requirement met (10+).`;
+      } else {
+        walletStatus.textContent =
+          `Found ${count} asset${count === 1 ? '' : 's'} from the policy in this wallet. ` +
+          `❌ Requirement not met (need at least 10).`;
+      }
+    } catch (err) {
+      console.error(err);
+      walletStatus.textContent = 'Error checking wallet assets.';
+    }
   }
 
   async function connect() {
@@ -303,6 +347,9 @@
       btn.textContent = `Connected: ${name}`;
       sel.disabled = true;
       console.log('Connected address:', userAddress);
+
+      // Run the policy check in the background right after connection
+      checkPolicyAssets();
     } catch (e) {
       console.error(e);
       alert('Connection failed: ' + e.message);
@@ -316,3 +363,4 @@
 </script>
 </body>
 </html>
+
