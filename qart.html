@@ -93,36 +93,6 @@
         textarea::placeholder {
             color: #aaa;
         }
-
-        .input-actions {
-            margin-top: 8px;
-            display: flex;
-            justify-content: flex-end;
-        }
-
-        .paste-btn {
-            border-radius: 999px;
-            border: 1px solid #1a2980;
-            background: #ffffff;
-            color: #1a2980;
-            padding: 6px 14px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s, color 0.2s, transform 0.1s;
-        }
-
-        .paste-btn:hover {
-            background: #1a2980;
-            color: #ffffff;
-            transform: translateY(-1px);
-        }
-
-        .paste-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
         
         .btn {
             background: linear-gradient(to right, #1a2980, #26d0ce);
@@ -272,9 +242,6 @@
                 placeholder="Enter Your Cardano Address"
                 autocomplete="off"
             ></textarea>
-            <div class="input-actions">
-                <button type="button" id="pasteBtn" class="paste-btn">Paste</button>
-            </div>
         </div>
         
         <div class="error" id="errorMsg"></div>
@@ -303,7 +270,7 @@
                 <li>Enter your Cardano address in the text field above</li>
                 <li>Click "Generate QArt Code" to create a QR code</li>
                 <li>Scan the QR code with any Cardano wallet</li>
-                <li>Cardano addresses usually start with "addr1"</li>
+                <li>Cardano addresses start with "addr1"</li>
             </ul>
         </div>
     </div>
@@ -314,7 +281,6 @@
     <script>
       document.addEventListener('DOMContentLoaded', function() {
         const addressInput     = document.getElementById('cardanoAddress');
-        const pasteBtn         = document.getElementById('pasteBtn');
         const generateBtn      = document.getElementById('generateBtn');
         const qrContainer      = document.getElementById('qrContainer');
         const qrCanvas         = document.getElementById('qrcode');
@@ -332,18 +298,9 @@
         let lastAddress = '';
         let lastSeed    = null;
 
-        // Address validation (allow addr*/stake* or hex-like strings)
+        // Basic Cardano address validation
         function isValidCardanoAddress(address) {
-          const trimmed = address.trim();
-          if (!trimmed) return false;
-
-          if (trimmed.startsWith('addr') || trimmed.startsWith('stake')) {
-            return trimmed.length >= 50 && trimmed.length <= 120;
-          }
-
-          // Fallback: hex-like string
-          const hexRegex = /^[0-9a-fA-F]+$/;
-          return hexRegex.test(trimmed) && trimmed.length >= 50 && trimmed.length <= 120;
+          return address.startsWith('addr1') && address.length >= 50 && address.length <= 110;
         }
 
         // Consistent large internal resolution for crispness on-screen
@@ -363,7 +320,7 @@
           };
         }
 
-        // --- Color helpers ---
+        // --- Color helpers (for vibrant but still "dark" tiles) ---
         function rgbToHsl(r, g, b) {
           r /= 255; g /= 255; b /= 255;
           const max = Math.max(r, g, b), min = Math.min(r, g, b);
@@ -387,7 +344,7 @@
         function hslToRgb(h, s, l) {
           let r, g, b;
           if (s === 0) {
-            r = g = b = l;
+            r = g = b = l; // achromatic
           } else {
             function hue2rgb(p, q, t) {
               if (t < 0) t += 1;
@@ -406,10 +363,11 @@
           return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
         }
 
-        // --- Complex random art pattern (seeded) ---
+        // --- Complex random art pattern each time (now using seeded RNG) ---
         function drawArtPattern(context, size, rng) {
           context.clearRect(0, 0, size, size);
 
+          // Palette: fully random hues, deterministic via rng
           const palette = [
             { h: rng() * 359, s: 0.90, l: 0.80 },
             { h: rng() * 359, s: 0.95, l: 0.62 },
@@ -585,6 +543,69 @@
             }
           }
 
-       
-::contentReference[oaicite:0]{index=0}
-    
+          targetCtx.putImageData(outImageData, 0, 0);
+        }
+
+        function generateQRCode(text) {
+          const size = computeCanvasSize();
+          // New seed for this image; stored for exports
+          lastSeed = Math.floor(Math.random() * 1e9);
+          lastAddress = text;
+          renderQArtToCanvas(qrCanvas, size, text, lastSeed);
+        }
+
+        function downloadAtSize(pixelSize, label) {
+          if (!lastAddress || lastSeed === null) {
+            alert('Generate a QArt Code first.');
+            return;
+          }
+
+          const exportCanvas = document.createElement('canvas');
+          renderQArtToCanvas(exportCanvas, pixelSize, lastAddress, lastSeed);
+
+          const link = document.createElement('a');
+          const safeAddr = lastAddress.slice(0, 12).replace(/[^a-zA-Z0-9]+/g, '_');
+          link.download = `qart_${safeAddr}_${label}.png`;
+          link.href = exportCanvas.toDataURL('image/png');
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
+
+        generateBtn.addEventListener('click', function() {
+          const address = addressInput.value.trim();
+          errorMsg.textContent = '';
+          
+          if (!address) {
+            errorMsg.textContent = 'Please enter a Cardano address';
+            return;
+          }
+          
+          if (!isValidCardanoAddress(address)) {
+            errorMsg.textContent = 'Please enter a valid Cardano address starting with "addr1"';
+            return;
+          }
+          
+          generateQRCode(address);
+          qrContainer.style.display = 'block';
+          downloadControls.style.display = 'block';
+          qrContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+
+        // Wire up download buttons
+        const dlButtons = downloadControls.querySelectorAll('.dl-btn');
+        dlButtons.forEach(btn => {
+          btn.addEventListener('click', function() {
+            const size  = parseInt(btn.getAttribute('data-size'), 10);
+            const label = btn.getAttribute('data-label') || (size / 1024 + 'k');
+            downloadAtSize(size, label);
+          });
+        });
+        
+        // Sample address
+        addressInput.value =
+          'Enter Your Cardano Address';
+      });
+    </script>
+</body>
+    </html>
