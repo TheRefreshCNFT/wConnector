@@ -719,6 +719,16 @@
         };
       }
 
+            // Detect if we're inside a wallet's in-app browser / webview
+      function isInWalletBrowser() {
+        const ua = navigator.userAgent || '';
+
+        return /Vespr|Eternl|Nami|Typhon|Lace|Gero|Yoroi|Flint/i.test(ua) ||
+               /\bwv\b/.test(ua); // generic Android WebView hint
+      }
+
+      
+
       // --- Color helpers (for vibrant but still "dark" tiles) ---
       function rgbToHsl(r, g, b) {
         r /= 255; g /= 255; b /= 255;
@@ -1203,6 +1213,7 @@ async function connect() {
 
 
  
+
 
 
 
