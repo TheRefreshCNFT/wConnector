@@ -1009,12 +1009,8 @@ function downloadAtSize(pixelSize, label) {
   // In-wallet / in-app browsers often block programmatic downloads.
   // Fallback: navigate directly to the image so the user can long-press / save.
   if (isInWalletBrowser()) {
-    // Option 1: navigate the current tab to the image
-    window.location.href = dataUrl;
-
     // (Optional) or this instead, if the wallet allows new tabs:
     window.open(dataUrl, '_blank');
-
     return;
   }
 
@@ -1213,6 +1209,7 @@ async function connect() {
 
 
  
+
 
 
 
