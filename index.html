@@ -1032,8 +1032,9 @@ async function detect() {
           `Found ${count} asset${count === 1 ? '' : 's'} from the policy in this wallet.`;
         accessMessage.classList.add('error');
         accessMessage.innerHTML =
-          `Sorry you don&#39;t have the required assets, get Fre5h ` +
-          `<a href="https://www.jpg.store/collection/therefresh" target="_blank" rel="noopener noreferrer">here</a>.`;
+          `<a href="https://www.jpg.store/collection/therefresh" target="_blank" rel="noopener noreferrer">
+             Purchase Assets
+           </a>`;
       }
     } catch (err) {
       console.error(err);
@@ -1097,6 +1098,7 @@ async function connect() {
 
 
  
+
 
 
 
