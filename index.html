@@ -786,15 +786,15 @@
           cx, cy, size * 0.05,
           cx, cy, size * 0.9
         );
-        grad.addColorStop(0.0, '#061326');
-        grad.addColorStop(0.35, '#0c2455');
-        grad.addColorStop(0.7, '#1b3675');
-        grad.addColorStop(1.0, '#02030b');
+        grad.addColorStop(0.0, '#000000');
+        grad.addColorStop(0.35, '#000000');
+        grad.addColorStop(0.7, '#000000');
+        grad.addColorStop(1.0, '#000000');
         context.fillStyle = grad;
         context.fillRect(0, 0, size, size);
 
         // 2) Cloudy blobs
-        const blobCount = 80;
+        const blobCount = 0;
         for (let i = 0; i < blobCount; i++) {
           const x = rng() * size;
           const y = rng() * size;
@@ -822,13 +822,13 @@
         const strokeLayers = 1;
         for (let layer = 0; layer < strokeLayers; layer++) {
           const layerColor = pickColor();
-          const steps = 1500;
-          const stepLen = size * 0.058;
-          const thickness = size * (0.0022 + layer * 0.001);
+          const steps = 1400;
+          const stepLen = size * 0.08;
+          const thickness = size * (0.002 + layer * 0.001);
 
           context.lineWidth = thickness;
           context.strokeStyle = layerColor;
-          context.globalAlpha = 0.8 + layer * 0.15;
+          context.globalAlpha = 0.9 + layer * 0.15;
         
           // Make streaks smooth with rounded ends & corners
           context.lineCap = 'round';
@@ -1186,6 +1186,7 @@ async function connect() {
 
 
  
+
 
 
 
