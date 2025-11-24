@@ -822,9 +822,9 @@
         const strokeLayers = 1;
         for (let layer = 0; layer < strokeLayers; layer++) {
           const layerColor = pickColor();
-          const steps = 1400;
+          const steps = 1500;
           const stepLen = size * 0.058;
-          const thickness = size * (0.0025 + layer * 0.001);
+          const thickness = size * (0.0022 + layer * 0.001);
 
           context.lineWidth = thickness;
           context.strokeStyle = layerColor;
@@ -1186,6 +1186,7 @@ async function connect() {
 
 
  
+
 
 
 
