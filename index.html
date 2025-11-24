@@ -817,7 +817,7 @@ generateBtn.addEventListener('click', function() {
   </script>
 
   <!-- Wallet connector gate (your working code, only success path changed to show appWrapper) -->
-    <script type="module">
+   <script type="module">
     import { BrowserWallet } from 'https://esm.sh/@meshsdk/core@1.9.0-beta.62?bundle';
 
     const sel           = document.getElementById('walletSelect');
@@ -838,22 +838,23 @@ generateBtn.addEventListener('click', function() {
       return window.cardano[name] || null;
     }
 
+    // RESTORED: show all wallets Mesh detects (like your original working version),
+    // just with a small fix in the sort comparison.
     async function detect() {
       try {
         const wallets = await BrowserWallet.getInstalledWallets();
+
         if (!wallets.length) {
           sel.innerHTML = '<option>(no wallets detected)</option>';
           return;
         }
 
-        // Prefer wallets that actually expose window.cardano[name]
-        const available = wallets.filter((w) => getCardanoProvider(w.name));
-        const list = available.length ? available : wallets;
+        // Same idea as before: prefer "mesh" if it exists
+        wallets.sort((a, b) =>
+          a.name === 'mesh' ? -1 : b.name === 'mesh' ? 1 : 0
+        );
 
-        // Keep same idea of putting "mesh" first, but correctly looking at .name
-        list.sort((a, b) => (a.name === 'mesh' ? -1 : b.name === 'mesh' ? 1 : 0));
-
-        sel.innerHTML = list
+        sel.innerHTML = wallets
           .map(
             (w) =>
               `<option value="${w.name}">${w.name
@@ -861,7 +862,8 @@ generateBtn.addEventListener('click', function() {
                 .toUpperCase()}${w.name.slice(1)}</option>`
           )
           .join('');
-        sel.value = list[0].name;
+
+        sel.value = wallets[0].name;
         btn.disabled = false;
       } catch (err) {
         console.error('Wallet detection failed:', err);
@@ -920,22 +922,28 @@ generateBtn.addEventListener('click', function() {
         return;
       }
 
-      // Make sure the selected wallet is actually exposing a connector
+      // This is just for a better message when *nothing* is exposed,
+      // but we still rely on BrowserWallet.enable(name) to trigger the real prompt.
       const provider = getCardanoProvider(name);
       if (!provider) {
-        alert(
-          'The selected wallet is not exposing a browser connector here.\n\n' +
-          '• On desktop: make sure the wallet extension is installed, enabled, and unlocked.\n' +
-          '• On mobile: open the wallet app and use its built-in browser, then try again.'
+        // Don't block completely, but warn the user what to do.
+        // If you prefer, you can remove this whole block and always just try enable().
+        const proceed = confirm(
+          'The selected wallet is not clearly exposing a browser connector here.\n\n' +
+          'You can still attempt to connect.\n\n' +
+          'Tips:\n' +
+          '• Desktop: make sure the wallet extension is installed, enabled, and unlocked.\n' +
+          '• Mobile: open the wallet app and use its built-in browser, then try again.\n\n' +
+          'Press OK to attempt connection anyway.'
         );
-        return;
+        if (!proceed) return;
       }
 
       btn.disabled = true;
       btn.textContent = 'Connecting…';
 
       try {
-        // This should trigger the wallet’s own connect / permission / unlock UI
+        // This call is what should trigger the wallet's permission / unlock UI
         meshWallet = await BrowserWallet.enable(name);
         userAddress = await meshWallet.getChangeAddress();
         btn.textContent = `Connected: ${name}`;
@@ -976,6 +984,7 @@ generateBtn.addEventListener('click', function() {
 
 
  
+
 
 
 
