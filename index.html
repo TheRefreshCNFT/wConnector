@@ -239,111 +239,126 @@
   </div>
 
   <script type="module">
-    import { BrowserWallet } from 'https://esm.sh/@meshsdk/core@1.9.0-beta.62?bundle';
+  import { BrowserWallet } from 'https://esm.sh/@meshsdk/core@1.9.0-beta.62?bundle';
 
-    const sel           = document.getElementById('walletSelect');
-    const btn           = document.getElementById('connectBtn');
-    const walletStatus  = document.getElementById('walletStatus');
-    const accessMessage = document.getElementById('accessMessage');
-    const gateOverlay   = document.getElementById('gateOverlay');
-    const appWrapper    = document.getElementById('appWrapper');
-    const qartFrame     = document.getElementById('qartFrame');
+  const sel           = document.getElementById('walletSelect');
+  const btn           = document.getElementById('connectBtn');
+  const walletStatus  = document.getElementById('walletStatus');
+  const accessMessage = document.getElementById('accessMessage');
+  const gateOverlay   = document.getElementById('gateOverlay');
+  const appWrapper    = document.getElementById('appWrapper');
+  const qartFrame     = document.getElementById('qartFrame');
 
-    // Fixed policy ID to check (no user prompt)
-    const POLICY_ID = 'adc5716393953403109c335e68c0384238fd19653e960e03afa1fb1f';
+  // Fixed policy ID to check (no user prompt)
+  const POLICY_ID = 'adc5716393953403109c335e68c0384238fd19653e960e03afa1fb1f';
 
-    let meshWallet, userAddress;
+  let meshWallet, userAddress;
 
-    async function detect() {
-      const wallets = await BrowserWallet.getInstalledWallets();
-      if (!wallets.length) {
-        sel.innerHTML = '<option>(no wallets detected)</option>';
-        return;
+  async function detect() {
+    const wallets = await BrowserWallet.getInstalledWallets();
+    if (!wallets.length) {
+      sel.innerHTML = '<option>(no wallets detected)</option>';
+      return;
+    }
+    // Keep same sort behavior
+    wallets.sort((a, b) => (a === 'mesh' ? -1 : b === 'mesh' ? 1 : 0));
+    sel.innerHTML = wallets
+      .map(
+        (w) =>
+          `<option value="${w.name}">${w.name
+            .charAt(0)
+            .toUpperCase()}${w.name.slice(1)}</option>`
+      )
+      .join('');
+    sel.value = wallets[0].name;
+    btn.disabled = false;
+  }
+
+  async function checkPolicyAssets() {
+    if (!meshWallet) return;
+
+    // Show "Checking Wallet" while the scan is running
+    walletStatus.classList.remove('hidden');
+    walletStatus.textContent = 'Checking Wallet…';
+    accessMessage.textContent = '';
+    accessMessage.classList.remove('error');
+
+    try {
+      // Mesh aggregates across all addresses in the wallet
+      const assets = await meshWallet.getAssets();
+
+      let count = 0;
+      for (const asset of assets) {
+        // Each entry here is a distinct asset (unit) in the wallet
+        if (asset.policyId === POLICY_ID) {
+          count++;
+        }
       }
-      // Keep same sort behavior you already had
-      wallets.sort((a, b) => (a === 'mesh' ? -1 : b === 'mesh' ? 1 : 0));
-      sel.innerHTML = wallets
-        .map(
-          (w) =>
-            `<option value="${w.name}">${w.name
-              .charAt(0)
-              .toUpperCase()}${w.name.slice(1)}</option>`
-        )
-        .join('');
-      sel.value = wallets[0].name;
+
+      if (count >= 10) {
+        walletStatus.textContent =
+          `Found ${count} asset${count === 1 ? '' : 's'} from the policy in this wallet. ✅ Access granted.`;
+        accessMessage.innerHTML = '<strong>Access granted. Loading QArt Code Gen…</strong>';
+
+        // When the QArt app iframe finishes loading, push the wallet address into it
+        qartFrame.onload = () => {
+          try {
+            if (
+              qartFrame.contentWindow &&
+              typeof qartFrame.contentWindow.setInitialAddress === 'function'
+            ) {
+              qartFrame.contentWindow.setInitialAddress(userAddress);
+            }
+          } catch (err) {
+            console.error('Unable to set initial address in QArt app:', err);
+          }
+        };
+
+        // Load the app into the iframe and remove the gate overlay
+        qartFrame.src = 'qart.html'; // make sure qart.html is in the same folder
+        appWrapper.classList.remove('hidden');
+        gateOverlay.classList.add('hidden');
+      } else {
+        walletStatus.textContent =
+          `Found ${count} asset${count === 1 ? '' : 's'} from the policy in this wallet.`;
+        accessMessage.classList.add('error');
+        accessMessage.innerHTML =
+          `Sorry you don&#39;t have the required assets, get Fre5h ` +
+          `<a href="https://www.jpg.store/collection/therefresh" target="_blank" rel="noopener noreferrer">here</a>.`;
+      }
+    } catch (err) {
+      console.error(err);
+      walletStatus.textContent = 'Error checking wallet assets.';
+      accessMessage.classList.add('error');
+      accessMessage.textContent = 'An error occurred while checking your wallet. Please try again.';
+    }
+  }
+
+  async function connect() {
+    const name = sel.value;
+    if (!name) return alert('Select a wallet');
+    btn.disabled = true;
+    btn.textContent = 'Connecting…';
+    try {
+      meshWallet = await BrowserWallet.enable(name);
+      userAddress = await meshWallet.getChangeAddress(); // address from the connected wallet
+      btn.textContent = `Connected: ${name}`;
+      sel.disabled = true;
+      console.log('Connected address:', userAddress);
+
+      // Run the policy check in the background right after connection
+      checkPolicyAssets();
+    } catch (e) {
+      console.error(e);
+      alert('Connection failed: ' + e.message);
+      btn.textContent = 'Connect Wallet';
       btn.disabled = false;
     }
+  }
 
-    async function checkPolicyAssets() {
-      if (!meshWallet) return;
-
-      // Show "Checking Wallet" while the scan is running
-      walletStatus.classList.remove('hidden');
-      walletStatus.textContent = 'Checking Wallet…';
-      accessMessage.textContent = '';
-      accessMessage.classList.remove('error');
-
-      try {
-        // Mesh aggregates across all addresses in the wallet
-        const assets = await meshWallet.getAssets();
-
-        let count = 0;
-        for (const asset of assets) {
-          // Each entry here is a distinct asset (unit) in the wallet
-          if (asset.policyId === POLICY_ID) {
-            count++;
-          }
-        }
-
-        if (count >= 10) {
-          walletStatus.textContent =
-            `Found ${count} asset${count === 1 ? '' : 's'} from the policy in this wallet. ✅ Access granted.`;
-          accessMessage.innerHTML = '<strong>Access granted. Loading QArt Code Gen…</strong>';
-
-          // Load the app into the iframe and remove the gate overlay
-          qartFrame.src = 'qart.html'; // make sure qart.html is in the same folder
-          appWrapper.classList.remove('hidden');
-          gateOverlay.classList.add('hidden');
-        } else {
-          walletStatus.textContent =
-            `Found ${count} asset${count === 1 ? '' : 's'} from the policy in this wallet.`;
-          accessMessage.classList.add('error');
-          accessMessage.innerHTML =
-            `Sorry you don&#39;t have the required assets, get Fre5h ` +
-            `<a href="https://www.jpg.store/collection/therefresh" target="_blank" rel="noopener noreferrer">here</a>.`;
-        }
-      } catch (err) {
-        console.error(err);
-        walletStatus.textContent = 'Error checking wallet assets.';
-        accessMessage.classList.add('error');
-        accessMessage.textContent = 'An error occurred while checking your wallet. Please try again.';
-      }
-    }
-
-    async function connect() {
-      const name = sel.value;
-      if (!name) return alert('Select a wallet');
-      btn.disabled = true;
-      btn.textContent = 'Connecting…';
-      try {
-        meshWallet = await BrowserWallet.enable(name);
-        userAddress = await meshWallet.getChangeAddress();
-        btn.textContent = `Connected: ${name}`;
-        sel.disabled = true;
-        console.log('Connected address:', userAddress);
-
-        // Run the policy check in the background right after connection
-        checkPolicyAssets();
-      } catch (e) {
-        console.error(e);
-        alert('Connection failed: ' + e.message);
-        btn.textContent = 'Connect Wallet';
-        btn.disabled = false;
-      }
-    }
-
-    document.addEventListener('DOMContentLoaded', detect);
-    btn.addEventListener('click', connect);
-  </script>
+  document.addEventListener('DOMContentLoaded', detect);
+  btn.addEventListener('click', connect);
+</script>
 </body>
 </html>
+
