@@ -817,7 +817,7 @@ generateBtn.addEventListener('click', function() {
   </script>
 
   <!-- Wallet connector gate (your working code, only success path changed to show appWrapper) -->
-  <script type="module">
+    <script type="module">
     import { BrowserWallet } from 'https://esm.sh/@meshsdk/core@1.9.0-beta.62?bundle';
 
     const sel           = document.getElementById('walletSelect');
@@ -832,24 +832,41 @@ generateBtn.addEventListener('click', function() {
 
     let meshWallet, userAddress;
 
+    // Helper: check if this wallet actually exposes a CIP-30 provider
+    function getCardanoProvider(name) {
+      if (typeof window === 'undefined' || !window.cardano) return null;
+      return window.cardano[name] || null;
+    }
+
     async function detect() {
-      const wallets = await BrowserWallet.getInstalledWallets();
-      if (!wallets.length) {
-        sel.innerHTML = '<option>(no wallets detected)</option>';
-        return;
+      try {
+        const wallets = await BrowserWallet.getInstalledWallets();
+        if (!wallets.length) {
+          sel.innerHTML = '<option>(no wallets detected)</option>';
+          return;
+        }
+
+        // Prefer wallets that actually expose window.cardano[name]
+        const available = wallets.filter((w) => getCardanoProvider(w.name));
+        const list = available.length ? available : wallets;
+
+        // Keep same idea of putting "mesh" first, but correctly looking at .name
+        list.sort((a, b) => (a.name === 'mesh' ? -1 : b.name === 'mesh' ? 1 : 0));
+
+        sel.innerHTML = list
+          .map(
+            (w) =>
+              `<option value="${w.name}">${w.name
+                .charAt(0)
+                .toUpperCase()}${w.name.slice(1)}</option>`
+          )
+          .join('');
+        sel.value = list[0].name;
+        btn.disabled = false;
+      } catch (err) {
+        console.error('Wallet detection failed:', err);
+        sel.innerHTML = '<option>(wallet detection failed)</option>';
       }
-      // Same behavior you had
-      wallets.sort((a, b) => (a === 'mesh' ? -1 : b === 'mesh' ? 1 : 0));
-      sel.innerHTML = wallets
-        .map(
-          (w) =>
-            `<option value="${w.name}">${w.name
-              .charAt(0)
-              .toUpperCase()}${w.name.slice(1)}</option>`
-        )
-        .join('');
-      sel.value = wallets[0].name;
-      btn.disabled = false;
     }
 
     async function checkPolicyAssets() {
@@ -898,10 +915,27 @@ generateBtn.addEventListener('click', function() {
 
     async function connect() {
       const name = sel.value;
-      if (!name) return alert('Select a wallet');
+      if (!name) {
+        alert('Select a wallet');
+        return;
+      }
+
+      // Make sure the selected wallet is actually exposing a connector
+      const provider = getCardanoProvider(name);
+      if (!provider) {
+        alert(
+          'The selected wallet is not exposing a browser connector here.\n\n' +
+          '• On desktop: make sure the wallet extension is installed, enabled, and unlocked.\n' +
+          '• On mobile: open the wallet app and use its built-in browser, then try again.'
+        );
+        return;
+      }
+
       btn.disabled = true;
       btn.textContent = 'Connecting…';
+
       try {
+        // This should trigger the wallet’s own connect / permission / unlock UI
         meshWallet = await BrowserWallet.enable(name);
         userAddress = await meshWallet.getChangeAddress();
         btn.textContent = `Connected: ${name}`;
@@ -917,8 +951,18 @@ generateBtn.addEventListener('click', function() {
         // Run the policy check in the background right after connection
         checkPolicyAssets();
       } catch (e) {
-        console.error(e);
-        alert('Connection failed: ' + e.message);
+        console.error('Wallet connection failed:', e);
+
+        let humanMsg =
+          'Connection failed.\n\n' +
+          '• If your wallet uses a PIN/password, open the wallet extension/app and unlock it first.\n' +
+          '• Then come back here and press "Connect Wallet" again.';
+
+        if (e && e.message) {
+          humanMsg = `Connection failed: ${e.message}\n\n` + humanMsg;
+        }
+
+        alert(humanMsg);
         btn.textContent = 'Connect Wallet';
         btn.disabled = false;
       }
@@ -932,6 +976,7 @@ generateBtn.addEventListener('click', function() {
 
 
  
+
 
 
 
