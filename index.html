@@ -751,5 +751,182 @@
           }
         }
 
-        targetCtx.putImageData(outImageDa
+        targetCtx.putImageData(outImageData, 0, 0);
+      }
 
+      function generateQRCode(text) {
+        const size = computeCanvasSize();
+        // New seed for this image; stored for exports
+        lastSeed = Math.floor(Math.random() * 1e9);
+        lastAddress = text;
+        renderQArtToCanvas(qrCanvas, size, text, lastSeed);
+      }
+
+      function downloadAtSize(pixelSize, label) {
+        if (!lastAddress || lastSeed === null) {
+          alert('Generate a QArt Code first.');
+          return;
+        }
+
+        const exportCanvas = document.createElement('canvas');
+        renderQArtToCanvas(exportCanvas, pixelSize, lastAddress, lastSeed);
+
+        const link = document.createElement('a');
+        const safeAddr = lastAddress.slice(0, 12).replace(/[^a-zA-Z0-9]+/g, '_');
+        link.download = `qart_${safeAddr}_${label}.png`;
+        link.href = exportCanvas.toDataURL('image/png');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+
+      generateBtn.addEventListener('click', function() {
+        const address = addressInput.value.trim();
+        errorMsg.textContent = '';
+        
+        if (!address) {
+          errorMsg.textContent = 'Please enter a Cardano address';
+          return;
+        }
+        
+        if (!isValidCardanoAddress(address)) {
+          errorMsg.textContent = 'Please enter a valid Cardano address starting with "addr1"';
+          return;
+        }
+        
+        generateQRCode(address);
+        qrContainer.style.display = 'block';
+        downloadControls.style.display = 'block';
+        qrContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+
+      // Wire up download buttons
+      const dlButtons = downloadControls.querySelectorAll('.dl-btn');
+      dlButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+          const size  = parseInt(btn.getAttribute('data-size'), 10);
+          const label = btn.getAttribute('data-label') || (size / 1024 + 'k');
+          downloadAtSize(size, label);
+        });
+      });
+      
+      // Sample address
+      addressInput.value = 'Enter Your Cardano Address';
+    });
+  </script>
+
+  <!-- Wallet connector gate (your working code, only success path changed to show appWrapper) -->
+  <script type="module">
+    import { BrowserWallet } from 'https://esm.sh/@meshsdk/core@1.9.0-beta.62?bundle';
+
+    const sel           = document.getElementById('walletSelect');
+    const btn           = document.getElementById('connectBtn');
+    const walletStatus  = document.getElementById('walletStatus');
+    const accessMessage = document.getElementById('accessMessage');
+    const gateOverlay   = document.getElementById('gateOverlay');
+    const appWrapper    = document.getElementById('appWrapper');
+
+    // Fixed policy ID to check (no user prompt)
+    const POLICY_ID = 'adc5716393953403109c335e68c0384238fd19653e960e03afa1fb1f';
+
+    let meshWallet, userAddress;
+
+    async function detect() {
+      const wallets = await BrowserWallet.getInstalledWallets();
+      if (!wallets.length) {
+        sel.innerHTML = '<option>(no wallets detected)</option>';
+        return;
+      }
+      // Same behavior you had
+      wallets.sort((a, b) => (a === 'mesh' ? -1 : b === 'mesh' ? 1 : 0));
+      sel.innerHTML = wallets
+        .map(
+          (w) =>
+            `<option value="${w.name}">${w.name
+              .charAt(0)
+              .toUpperCase()}${w.name.slice(1)}</option>`
+        )
+        .join('');
+      sel.value = wallets[0].name;
+      btn.disabled = false;
+    }
+
+    async function checkPolicyAssets() {
+      if (!meshWallet) return;
+
+      // Show "Checking Wallet" while the scan is running
+      walletStatus.classList.remove('hidden');
+      walletStatus.textContent = 'Checking Wallet…';
+      accessMessage.textContent = '';
+      accessMessage.classList.remove('error');
+
+      try {
+        // Mesh aggregates across all addresses in the wallet
+        const assets = await meshWallet.getAssets();
+
+        let count = 0;
+        for (const asset of assets) {
+          if (asset.policyId === POLICY_ID) {
+            count++;
+          }
+        }
+
+        if (count >= 10) {
+          walletStatus.textContent =
+            `Found ${count} asset${count === 1 ? '' : 's'} from the policy in this wallet. ✅ Access granted.`;
+          accessMessage.innerHTML = '<strong>Access granted. Loading QArt Code Gen…</strong>';
+
+          // SHOW APP, HIDE GATE
+          appWrapper.classList.remove('hidden');
+          gateOverlay.classList.add('hidden');
+        } else {
+          walletStatus.textContent =
+            `Found ${count} asset${count === 1 ? '' : 's'} from the policy in this wallet.`;
+          accessMessage.classList.add('error');
+          accessMessage.innerHTML =
+            `Sorry you don&#39;t have the required assets, get Fre5h ` +
+            `<a href="https://www.jpg.store/collection/therefresh" target="_blank" rel="noopener noreferrer">here</a>.`;
+        }
+      } catch (err) {
+        console.error(err);
+        walletStatus.textContent = 'Error checking wallet assets.';
+        accessMessage.classList.add('error');
+        accessMessage.textContent = 'An error occurred while checking your wallet. Please try again.';
+      }
+    }
+
+    async function connect() {
+      const name = sel.value;
+      if (!name) return alert('Select a wallet');
+      btn.disabled = true;
+      btn.textContent = 'Connecting…';
+      try {
+        meshWallet = await BrowserWallet.enable(name);
+        userAddress = await meshWallet.getChangeAddress();
+        btn.textContent = `Connected: ${name}`;
+        sel.disabled = true;
+        console.log('Connected address:', userAddress);
+
+        // Pre-fill QArt textarea with connected address (safe guard)
+        const addrField = document.getElementById('cardanoAddress');
+        if (addrField && typeof userAddress === 'string') {
+          addrField.value = userAddress;
+        }
+
+        // Run the policy check in the background right after connection
+        checkPolicyAssets();
+      } catch (e) {
+        console.error(e);
+        alert('Connection failed: ' + e.message);
+        btn.textContent = 'Connect Wallet';
+        btn.disabled = false;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', detect);
+    btn.addEventListener('click', connect);
+  </script>
+</body>
+</html>
+
+      
