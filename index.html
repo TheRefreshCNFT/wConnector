@@ -712,7 +712,7 @@
           foreground: '#000000'
         });
 
-        const qrImageData  = qrRawCtx.getImageData(0, 0, size);
+        const qrImageData  = qrRawCtx.getImageData(0, 0, size, size);
         const qrData       = qrImageData.data;
         const artImageData = artCtx.getImageData(0, 0, size, size);
         const artData      = artImageData.data;
@@ -930,3 +930,4 @@
 
 
  
+
