@@ -33,10 +33,10 @@
     body {
       margin: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #1a2980, #26d0ce); /* QArt bg */
+      background: linear-gradient(135deg, #1a2980, #26d0ce);
       color: var(--text);
       line-height: 1.6;
-      overflow: hidden; /* gate/app manage their own scroll */
+      overflow: hidden; /* gate/app manage scroll */
     }
 
     /* --- APP WRAPPER (underneath overlay) --- */
@@ -191,7 +191,7 @@
       }
     }
 
-    /* ===== QArt App Styles (scoped so they don't clash with gate) ===== */
+    /* ===== QArt App Styles (copied from your qart.html, scoped) ===== */
 
     .qart-container {
       background: rgba(255, 255, 255, 0.92);
@@ -451,7 +451,7 @@
     </div>
   </div>
 
-  <!-- WALLET GATE OVERLAY (your working connector) -->
+  <!-- WALLET GATE OVERLAY (your working connector layout) -->
   <div id="gateOverlay">
     <header>
       <div class="container">
@@ -486,7 +486,7 @@
   <!-- QRious library for real QR code generation -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
 
-  <!-- QArt logic (your current working qart.js) -->
+  <!-- QArt logic (exactly your current qart.js) -->
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       const addressInput     = document.getElementById('cardanoAddress');
@@ -545,7 +545,6 @@
             case g: h = (b - r) / d + 2; break;
             case b: h = (r - g) / d + 4; break;
           }
-          // h in [0,1]
         }
         return [h, s, l];
       }
@@ -751,3 +750,6 @@
             outData[i + 3] = 255;
           }
         }
+
+        targetCtx.putImageData(outImageDa
+
