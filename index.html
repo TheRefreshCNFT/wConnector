@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>QArt Code Gen – Fre5h Access</title>
   <style>
     * {
@@ -25,7 +25,7 @@
       display: none !important;
     }
 
-    /* ===== QArt App Styles (your current qart.html styles) ===== */
+    /* ===== QArt App Styles (taken from your current qart.html) ===== */
 
     .container {
       background: rgba(255, 255, 255, 0.92);
@@ -98,36 +98,6 @@
 
     textarea::placeholder {
       color: #aaa;
-    }
-
-    .input-actions {
-      margin-top: 8px;
-      display: flex;
-      justify-content: flex-end;
-    }
-
-    .paste-btn {
-      border-radius: 999px;
-      border: 1px solid #1a2980;
-      background: #ffffff;
-      color: #1a2980;
-      padding: 6px 14px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s, color 0.2s, transform 0.1s;
-    }
-
-    .paste-btn:hover {
-      background: #1a2980;
-      color: #ffffff;
-      transform: translateY(-1px);
-    }
-
-    .paste-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      transform: none;
     }
 
     .btn {
@@ -384,7 +354,7 @@
   </style>
 </head>
 <body>
-  <!-- QArt app (same structure as your current qart.html) -->
+  <!-- QArt app (exact same structure as your current qart.html) -->
   <div id="appContainer">
     <div class="container">
       <header>
@@ -392,23 +362,20 @@
         <h1>QArt Codes</h1>
         <p class="subtitle">Cardano QArt Codes</p>
       </header>
-
+      
       <div class="input-container">
         <label for="cardanoAddress">Enter Cardano Address:</label>
-        <textarea
-          id="cardanoAddress"
+        <textarea 
+          id="cardanoAddress" 
           placeholder="Enter Your Cardano Address"
           autocomplete="off"
         ></textarea>
-        <div class="input-actions">
-          <button type="button" id="pasteBtn" class="paste-btn">Paste</button>
-        </div>
       </div>
-
+      
       <div class="error" id="errorMsg"></div>
-
+      
       <button class="btn" id="generateBtn">Generate QArt Code</button>
-
+      
       <div class="qr-container" id="qrContainer">
         <canvas id="qrcode"></canvas>
 
@@ -424,7 +391,7 @@
           </div>
         </div>
       </div>
-
+      
       <div class="instructions">
         <h3>How to use:</h3>
         <ul>
@@ -449,7 +416,7 @@
 
       <div class="gate-row">
         <select id="walletSelect">
-          <option value="">(Detecting wallets…)</option>
+          <option value="">Select Wallet…</option>
         </select>
         <button id="connectBtn" disabled>Connect Wallet</button>
       </div>
@@ -459,14 +426,13 @@
     </div>
   </div>
 
-  <!-- QRious library -->
+  <!-- QRious library for QR generation -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
 
-  <!-- QArt logic: this is your current qart.js, plus paste + setQartAddress -->
+  <!-- QArt logic: your current qart.js + a tiny hook for pre-filling address -->
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       const addressInput     = document.getElementById('cardanoAddress');
-      const pasteBtn         = document.getElementById('pasteBtn');
       const generateBtn      = document.getElementById('generateBtn');
       const qrContainer      = document.getElementById('qrContainer');
       const qrCanvas         = document.getElementById('qrcode');
@@ -740,5 +706,25 @@
       }
 
       function downloadAtSize(pixelSize, label) {
-        if (!lastAddress
+        if (!lastAddress || lastSeed === null) {
+          alert('Generate a QArt Code first.');
+          return;
+        }
 
+        const exportCanvas = document.createElement('canvas');
+        renderQArtToCanvas(exportCanvas, pixelSize, lastAddress, lastSeed);
+
+        const link = document.createElement('a');
+        const safeAddr = lastAddress.slice(0, 12).replace(/[^a-zA-Z0-9]+/g, '_');
+        link.download = `qart_${safeAddr}_${label}.png`;
+        link.href = exportCanvas.toDataURL('image/png');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+
+      generateBtn.addEventListener('click', function() {
+        const address = addressInput.value.trim();
+        errorMsg.textContent = '';
+        
+        if 
