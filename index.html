@@ -1,730 +1,349 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QArt Code Gen – Fre5h Access</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>QArt Code Gen – Access</title>
   <style>
+    :root {
+      --gap: 1rem;
+      --pad: .5rem;
+      --primary: #2196F3;
+      --primary-dark: #1976D2;
+      --secondary: #21CBF3;
+      --text: #333;
+      --text-light: #666;
+      --bg: #f8f9fa;
+      --card-bg: #fff;
+      --border: #e0e0e0;
+      --success: #4CAF50;
+      --error: #f44336;
+    }
+
     * {
+      box-sizing: border-box;
       margin: 0;
       padding: 0;
-      box-sizing: border-box;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    html, body {
+      height: 100%;
     }
 
     body {
-      background: linear-gradient(135deg, #1a2980, #26d0ce);
-      min-height: 100vh;
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #000; /* app background will show once gate is gone */
+      color: var(--text);
+      line-height: 1.6;
+      overflow: hidden; /* prevent outer scrollbars, app handles its own */
+    }
+
+    /* --- APP WRAPPER (underneath overlay) --- */
+    #appWrapper {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    #qartFrame {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
+    }
+
+    /* --- GATE OVERLAY --- */
+    #gateOverlay {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 10;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
+    }
+
+    header {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      text-align: center;
+      padding: 2rem var(--pad);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    #description {
+      font-size: 1.2rem;
+      opacity: 0.9;
+      margin-bottom: 1.5rem;
+    }
+
+    #instructions {
+      font-size: 1rem;
+      margin: 1rem 0;
+    }
+
+    #walletStatus {
+      background: rgba(255,255,255,0.15);
+      border-radius: 50px;
+      padding: 0.5rem 1.5rem;
+      display: inline-block;
+      margin-top: 1rem;
+      font-weight: 500;
+      backdrop-filter: blur(5px);
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      width: 100%;
+      padding: 0 var(--pad);
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+      padding: 2rem;
+      margin: 2rem auto;
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
       align-items: center;
-      padding: 20px;
+      margin-bottom: 1rem;
+    }
+
+    button {
+      padding: 0.8rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 1rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    #connectBtn {
+      background: white;
+      color: var(--primary);
+    }
+
+    #connectBtn:hover {
+      background: #f5f5f5;
+      transform: translateY(-2px);
+    }
+
+    #connectBtn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    select, input {
+      padding: 0.8rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 1rem;
+      width: 100%;
+    }
+
+    select {
+      flex: 1;
+      background: white;
     }
 
     .hidden {
       display: none !important;
     }
 
-    /* ===== QArt App Styles (taken from your current qart.html) ===== */
-
-    .container {
-      background: rgba(255, 255, 255, 0.92);
-      border-radius: 20px;
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
-      width: 100%;
-      max-width: 640px;
-      padding: 30px;
-      text-align: center;
-    }
-
-    header {
-      margin-bottom: 25px;
-    }
-
-    h1 {
-      color: #1a2980;
-      font-size: 2.2rem;
-      margin-bottom: 10px;
-    }
-
-    .subtitle {
-      color: #26d0ce;
-      font-size: 1.1rem;
-      font-weight: 500;
-    }
-
-    .cardano-logo {
-      width: 50px;
-      height: 50px;
-      background: #1a2980;
-      border-radius: 50%;
-      margin: 0 auto 15px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: white;
-      font-weight: bold;
-      font-size: 1.2rem;
-    }
-
-    .input-container {
-      margin-bottom: 25px;
-      text-align: left;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 8px;
-      color: #1a2980;
-      font-weight: 600;
-    }
-
-    textarea {
-      width: 100%;
-      height: 120px;
-      padding: 15px;
-      border: 2px solid #e0e0e0;
-      border-radius: 12px;
+    .access-message {
+      margin-top: 1rem;
       font-size: 1rem;
-      resize: vertical;
-      transition: all 0.3s;
+      color: var(--text-light);
     }
 
-    textarea:focus {
-      outline: none;
-      border-color: #26d0ce;
-      box-shadow: 0 0 0 3px rgba(38, 208, 206, 0.2);
+    .access-message strong {
+      color: var(--success);
     }
 
-    textarea::placeholder {
-      color: #aaa;
+    .access-message.error {
+      color: var(--error);
     }
 
-    .btn {
-      background: linear-gradient(to right, #1a2980, #26d0ce);
-      color: white;
-      border: none;
-      padding: 15px 30px;
-      font-size: 1.1rem;
-      font-weight: 600;
-      border-radius: 50px;
-      cursor: pointer;
-      transition: all 0.3s;
-      box-shadow: 0 5px 15px rgba(26, 41, 128, 0.3);
-      width: 100%;
-      margin-bottom: 25px;
-    }
-
-    .btn:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 20px rgba(26, 41, 128, 0.4);
-    }
-
-    .btn:active {
-      transform: translateY(1px);
-    }
-
-    .qr-container {
-      display: none;
-      margin-top: 20px;
-      padding: 10px;
-      border-radius: 15px;
-      background: white;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-    }
-
-    #qrcode {
-      margin: 0 auto;
-      padding: 5px;
-      background: white;
-      border-radius: 10px;
-      width: 100%;
-      height: auto;
-      display: block;
-    }
-
-    .download-controls {
-      margin-top: 10px;
-      text-align: center;
-    }
-
-    .download-label {
-      font-size: 0.9rem;
-      color: #1a2980;
-      margin-bottom: 6px;
-    }
-
-    .download-buttons {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 8px;
-    }
-
-    .dl-btn {
-      border: 1px solid #1a2980;
-      background: #ffffff;
-      color: #1a2980;
-      border-radius: 999px;
-      padding: 6px 10px;
-      font-size: 0.85rem;
-      cursor: pointer;
-      min-width: 52px;
-      transition: background 0.2s, color 0.2s, transform 0.1s;
-    }
-
-    .dl-btn:hover {
-      background: #1a2980;
-      color: #ffffff;
-      transform: translateY(-1px);
-    }
-
-    .error {
-      color: #e74c3c;
-      margin: 10px 0;
-      font-weight: 500;
-      min-height: 24px;
-    }
-
-    .instructions {
-      background: #e3f2fd;
-      padding: 15px;
-      border-radius: 12px;
-      margin-top: 25px;
-      text-align: left;
-    }
-
-    .instructions h3 {
-      color: #1a2980;
-      margin-bottom: 10px;
-    }
-
-    .instructions ul {
-      padding-left: 20px;
-      color: #2c3e50;
-    }
-
-    .instructions li {
-      margin-bottom: 8px;
-    }
-
-    @media (max-width: 480px) {
-      .container {
-        padding: 20px;
-        max-width: 100%;
-      }
-
-      h1 {
-        font-size: 1.8rem;
-      }
-
-      .btn {
-        padding: 12px 25px;
-      }
-
-      .download-buttons {
-        gap: 6px;
-      }
-
-      .dl-btn {
-        font-size: 0.8rem;
-        padding: 5px 8px;
-      }
-    }
-
-    /* ===== Wallet Gate Overlay Styles ===== */
-
-    .gate-overlay {
-      position: fixed;
-      inset: 0;
-      background: linear-gradient(135deg, #2196F3, #21CBF3);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
-    }
-
-    .gate-card {
-      background: rgba(255, 255, 255, 0.96);
-      border-radius: 16px;
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
-      max-width: 480px;
-      width: calc(100% - 40px);
-      padding: 24px 24px 28px;
-      text-align: center;
-    }
-
-    .gate-title {
-      font-size: 2rem;
-      color: #1a2980;
-      margin-bottom: 0.4rem;
-    }
-
-    .gate-subtitle {
-      font-size: 1rem;
-      color: #444;
-      margin-bottom: 1rem;
-    }
-
-    .gate-info {
-      font-size: 0.95rem;
-      color: #555;
-      margin-bottom: 1.2rem;
-    }
-
-    .gate-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.75rem;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 0.75rem;
-    }
-
-    #walletSelect {
-      padding: 0.6rem 0.8rem;
-      border-radius: 999px;
-      border: 1px solid #ccd5e0;
-      font-size: 0.95rem;
-      min-width: 160px;
-      background: #fff;
-    }
-
-    #connectBtn {
-      padding: 0.6rem 1.2rem;
-      border-radius: 999px;
-      border: none;
-      font-weight: 600;
-      font-size: 0.95rem;
-      background: #1a2980;
-      color: #fff;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-      transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
-    }
-
-    #connectBtn:hover:not(:disabled) {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
-    }
-
-    #connectBtn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      box-shadow: none;
-      transform: none;
-    }
-
-    #walletStatus {
-      margin-top: 0.6rem;
-      font-size: 0.9rem;
-      color: #1a2980;
-      min-height: 1.2em;
-    }
-
-    #accessMessage {
-      margin-top: 0.4rem;
-      font-size: 0.9rem;
-      min-height: 1.2em;
-    }
-
-    #accessMessage.error {
-      color: #e74c3c;
-    }
-
-    #accessMessage a {
-      color: #1a2980;
+    .access-message a {
+      color: var(--primary-dark);
       text-decoration: underline;
-      font-weight: 600;
     }
 
-    @media (max-width: 480px) {
-      .gate-card {
-        padding: 20px 18px 24px;
-      }
-
-      .gate-title {
-        font-size: 1.7rem;
-      }
-
-      .gate-info {
-        font-size: 0.9rem;
+    @media(max-width: 600px){
+      .row {
+        flex-direction: column;
+        align-items: stretch;
       }
     }
   </style>
 </head>
 <body>
-  <!-- QArt app (exact same structure as your current qart.html) -->
-  <div id="appContainer">
-    <div class="container">
-      <header>
-        <div class="cardano-logo">ADA</div>
-        <h1>QArt Codes</h1>
-        <p class="subtitle">Cardano QArt Codes</p>
-      </header>
-      
-      <div class="input-container">
-        <label for="cardanoAddress">Enter Cardano Address:</label>
-        <textarea 
-          id="cardanoAddress" 
-          placeholder="Enter Your Cardano Address"
-          autocomplete="off"
-        ></textarea>
-      </div>
-      
-      <div class="error" id="errorMsg"></div>
-      
-      <button class="btn" id="generateBtn">Generate QArt Code</button>
-      
-      <div class="qr-container" id="qrContainer">
-        <canvas id="qrcode"></canvas>
 
-        <!-- Download controls -->
-        <div id="downloadControls" class="download-controls" style="display:none;">
-          <p class="download-label">Download PNG:</p>
-          <div class="download-buttons">
-            <button type="button" class="dl-btn" data-size="1024" data-label="1k">1K</button>
-            <button type="button" class="dl-btn" data-size="2048" data-label="2k">2K</button>
-            <button type="button" class="dl-btn" data-size="4096" data-label="4k">4K</button>
-            <button type="button" class="dl-btn" data-size="8192" data-label="8k">8K</button>
-            <button type="button" class="dl-btn" data-size="16384" data-label="16k">16K</button>
-          </div>
+  <!-- APP AREA (hidden until gate passes) -->
+  <div id="appWrapper" class="hidden">
+    <!-- Load your existing QArt app here -->
+    <iframe id="qartFrame" src=""></iframe>
+  </div>
+
+  <!-- WALLET GATE OVERLAY -->
+  <div id="gateOverlay">
+    <header>
+      <div class="container">
+        <h1>QArt Code Gen</h1>
+        <p id="description">Exclusive access for Fre5h holders</p>
+        <p id="instructions">Connect a Cardano wallet that holds at least 10 assets from the Fre5h policy to enter.</p>
+
+        <div class="row">
+          <select id="walletSelect">
+            <option value="">Select Wallet…</option>
+            <!-- Wallets will be populated dynamically -->
+          </select>
+          <button id="connectBtn" disabled>Connect Wallet</button>
         </div>
+
+        <div id="walletStatus" class="hidden"></div>
       </div>
-      
-      <div class="instructions">
-        <h3>How to use:</h3>
-        <ul>
-          <li>Enter your Cardano address in the text field above</li>
-          <li>Click "Generate QArt Code" to create a QR code</li>
-          <li>Scan the QR code with any Cardano wallet</li>
-          <li>Cardano addresses start with "addr1"</li>
-        </ul>
+    </header>
+
+    <div class="container">
+      <div class="card">
+        <h2>Access Gate</h2>
+        <p>
+          This gate checks your connected wallet for Fre5h assets from the required policy.
+          If 10 or more are found, the QArt Code Gen app will open.
+        </p>
+        <p id="accessMessage" class="access-message"></p>
       </div>
     </div>
   </div>
 
-  <!-- Wallet gate overlay on top -->
-  <div id="walletOverlay" class="gate-overlay">
-    <div class="gate-card">
-      <h2 class="gate-title">QArt Code Gen</h2>
-      <p class="gate-subtitle">Fre5h holders only</p>
-      <p class="gate-info">
-        Connect a Cardano wallet that holds <strong>10 or more assets</strong> from the Fre5h policy
-        to access the QArt Code Gen app.
-      </p>
+  <script type="module">
+    import { BrowserWallet } from 'https://esm.sh/@meshsdk/core@1.9.0-beta.62?bundle';
 
-      <div class="gate-row">
-        <select id="walletSelect">
-          <option value="">Select Wallet…</option>
-        </select>
-        <button id="connectBtn" disabled>Connect Wallet</button>
-      </div>
+    const sel           = document.getElementById('walletSelect');
+    const btn           = document.getElementById('connectBtn');
+    const walletStatus  = document.getElementById('walletStatus');
+    const accessMessage = document.getElementById('accessMessage');
+    const gateOverlay   = document.getElementById('gateOverlay');
+    const appWrapper    = document.getElementById('appWrapper');
+    const qartFrame     = document.getElementById('qartFrame');
 
-      <div id="walletStatus" class="hidden"></div>
-      <div id="accessMessage"></div>
-    </div>
-  </div>
+    // Fixed policy ID to check (no user prompt)
+    const POLICY_ID = 'adc5716393953403109c335e68c0384238fd19653e960e03afa1fb1f';
 
-  <!-- QRious library for QR generation -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    let meshWallet, userAddress;
 
-  <!-- QArt logic: your current qart.js + a tiny hook for pre-filling address -->
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const addressInput     = document.getElementById('cardanoAddress');
-      const generateBtn      = document.getElementById('generateBtn');
-      const qrContainer      = document.getElementById('qrContainer');
-      const qrCanvas         = document.getElementById('qrcode');
-      const errorMsg         = document.getElementById('errorMsg');
-      const downloadControls = document.getElementById('downloadControls');
-      const ctx              = qrCanvas.getContext('2d');
-
-      // Offscreen canvases for raw QR and art pattern
-      const qrRawCanvas  = document.createElement('canvas');
-      const qrRawCtx     = qrRawCanvas.getContext('2d');
-      const artCanvas    = document.createElement('canvas');
-      const artCtx       = artCanvas.getContext('2d');
-
-      // Remember last generated state for exports
-      let lastAddress = '';
-      let lastSeed    = null;
-
-      // Basic Cardano address validation
-      function isValidCardanoAddress(address) {
-        return address.startsWith('addr1') && address.length >= 50 && address.length <= 110;
+    async function detect() {
+      const wallets = await BrowserWallet.getInstalledWallets();
+      if (!wallets.length) {
+        sel.innerHTML = '<option>(no wallets detected)</option>';
+        return;
       }
+      // Keep same sort behavior you already had
+      wallets.sort((a, b) => (a === 'mesh' ? -1 : b === 'mesh' ? 1 : 0));
+      sel.innerHTML = wallets
+        .map(
+          (w) =>
+            `<option value="${w.name}">${w.name
+              .charAt(0)
+              .toUpperCase()}${w.name.slice(1)}</option>`
+        )
+        .join('');
+      sel.value = wallets[0].name;
+      btn.disabled = false;
+    }
 
-      // Consistent large internal resolution for crispness on-screen
-      function computeCanvasSize() {
-        const dpr = window.devicePixelRatio || 1;
-        const cssSize = 512;          // logical base size; canvas stretches to card width
-        return Math.round(cssSize * dpr);
-      }
+    async function checkPolicyAssets() {
+      if (!meshWallet) return;
 
-      // Seeded RNG so we can reproduce the same art pattern at any resolution
-      function createRNG(seed) {
-        let s = seed % 2147483647;
-        if (s <= 0) s += 2147483646;
-        return function() {
-          s = s * 16807 % 2147483647;
-          return (s - 1) / 2147483646;
-        };
-      }
+      // Show "Checking Wallet" while the scan is running
+      walletStatus.classList.remove('hidden');
+      walletStatus.textContent = 'Checking Wallet…';
+      accessMessage.textContent = '';
+      accessMessage.classList.remove('error');
 
-      // --- Color helpers (for vibrant but still "dark" tiles) ---
-      function rgbToHsl(r, g, b) {
-        r /= 255; g /= 255; b /= 255;
-        const max = Math.max(r, g, b), min = Math.min(r, g, b);
-        let h, s, l = (max + min) / 2;
+      try {
+        // Mesh aggregates across all addresses in the wallet
+        const assets = await meshWallet.getAssets();
 
-        if (max === min) {
-          h = 0; s = 0;
+        let count = 0;
+        for (const asset of assets) {
+          // Each entry here is a distinct asset (unit) in the wallet
+          if (asset.policyId === POLICY_ID) {
+            count++;
+          }
+        }
+
+        if (count >= 10) {
+          walletStatus.textContent =
+            `Found ${count} asset${count === 1 ? '' : 's'} from the policy in this wallet. ✅ Access granted.`;
+          accessMessage.innerHTML = '<strong>Access granted. Loading QArt Code Gen…</strong>';
+
+          // Load the app into the iframe and remove the gate overlay
+          qartFrame.src = 'qart.html'; // make sure qart.html is in the same folder
+          appWrapper.classList.remove('hidden');
+          gateOverlay.classList.add('hidden');
         } else {
-          const d = max - min;
-          s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-          switch (max) {
-            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-            case g: h = (b - r) / d + 2; break;
-            case b: h = (r - g) / d + 4; break;
-          }
+          walletStatus.textContent =
+            `Found ${count} asset${count === 1 ? '' : 's'} from the policy in this wallet.`;
+          accessMessage.classList.add('error');
+          accessMessage.innerHTML =
+            `Sorry you don&#39;t have the required assets, get Fre5h ` +
+            `<a href="https://www.jpg.store/collection/therefresh" target="_blank" rel="noopener noreferrer">here</a>.`;
         }
-        return [h, s, l];
+      } catch (err) {
+        console.error(err);
+        walletStatus.textContent = 'Error checking wallet assets.';
+        accessMessage.classList.add('error');
+        accessMessage.textContent = 'An error occurred while checking your wallet. Please try again.';
       }
+    }
 
-      function hslToRgb(h, s, l) {
-        let r, g, b;
-        if (s === 0) {
-          r = g = b = l; // achromatic
-        } else {
-          function hue2rgb(p, q, t) {
-            if (t < 0) t += 1;
-            if (t > 1) t -= 1;
-            if (t < 1/6) return p + (q - p) * 6 * t;
-            if (t < 1/2) return q;
-            if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
-            return p;
-          }
-          const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-          const p = 2 * l - q;
-          r = hue2rgb(p, q, h + 1/3);
-          g = hue2rgb(p, q, h);
-          b = hue2rgb(p, q, h - 1/3);
-        }
-        return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+    async function connect() {
+      const name = sel.value;
+      if (!name) return alert('Select a wallet');
+      btn.disabled = true;
+      btn.textContent = 'Connecting…';
+      try {
+        meshWallet = await BrowserWallet.enable(name);
+        userAddress = await meshWallet.getChangeAddress();
+        btn.textContent = `Connected: ${name}`;
+        sel.disabled = true;
+        console.log('Connected address:', userAddress);
+
+        // Run the policy check in the background right after connection
+        checkPolicyAssets();
+      } catch (e) {
+        console.error(e);
+        alert('Connection failed: ' + e.message);
+        btn.textContent = 'Connect Wallet';
+        btn.disabled = false;
       }
+    }
 
-      // --- Complex random art pattern each time (now using seeded RNG) ---
-      function drawArtPattern(context, size, rng) {
-        context.clearRect(0, 0, size, size);
-
-        // Palette: fully random hues, deterministic via rng
-        const palette = [
-          { h: rng() * 359, s: 0.90, l: 0.80 },
-          { h: rng() * 359, s: 0.95, l: 0.62 },
-          { h: rng() * 359, s: 0.95, l: 0.64 },
-          { h: rng() * 359, s: 0.95, l: 0.55 },
-          { h: rng() * 359, s: 0.50, l: 0.50 }
-        ];
-        function pickColor() {
-          const c = palette[Math.floor(rng() * palette.length)];
-          return `hsla(${c.h}, ${c.s * 100}%, ${c.l * 100}%, 0.4)`;
-        }
-
-        // 1) Base gradient
-        const cx = size * (0.3 + rng() * 0.4);
-        const cy = size * (0.3 + rng() * 0.4);
-        const grad = context.createRadialGradient(
-          cx, cy, size * 0.05,
-          cx, cy, size * 0.9
-        );
-        grad.addColorStop(0.0, '#061326');
-        grad.addColorStop(0.35, '#0c2455');
-        grad.addColorStop(0.7, '#1b3675');
-        grad.addColorStop(1.0, '#02030b');
-        context.fillStyle = grad;
-        context.fillRect(0, 0, size, size);
-
-        // 2) Cloudy blobs
-        const blobCount = 80;
-        for (let i = 0; i < blobCount; i++) {
-          const x = rng() * size;
-          const y = rng() * size;
-          const r = size * (0.06 + rng() * 0.20);
-          const blobGrad = context.createRadialGradient(x, y, 0, x, y, r);
-
-          const baseHue = 185 + rng() * 120;
-          const col1 = `hsla(${baseHue}, 95%, 70%, 0.7)`;
-          const col2 = `hsla(${baseHue}, 85%, 55%, 0.5)`;
-          const col3 = 'rgba(115,50,0,.7)';
-
-          blobGrad.addColorStop(0.0, col1);
-          blobGrad.addColorStop(0.4, col2);
-          blobGrad.addColorStop(1.0, col3);
-
-          context.globalAlpha = 0.9;
-          context.fillStyle = blobGrad;
-          context.beginPath();
-          context.arc(x, y, r, 0, Math.PI * 2);
-          context.fill();
-        }
-        context.globalAlpha = 1;
-
-        // 3) Flow-field streaks
-        const strokeLayers = 1;
-        for (let layer = 0; layer < strokeLayers; layer++) {
-          const layerColor = pickColor();
-          const steps = 1400;
-          const stepLen = size * 0.018;
-          const thickness = size * (0.0025 + layer * 0.001);
-
-          context.lineWidth = thickness;
-          context.strokeStyle = layerColor;
-          context.globalAlpha = 0.8 + layer * 0.15;
-
-          const seed1 = rng() * 20;
-          const seed2 = rng() * 20;
-
-          for (let i = 0; i < steps; i++) {
-            let x = rng() * size;
-            let y = rng() * size;
-
-            const segments = 6 + Math.floor(rng() * 5);
-            context.beginPath();
-            context.moveTo(x, y);
-
-            for (let s = 0; s < segments; s++) {
-              const nx = x / size;
-              const ny = y / size;
-
-              const angle =
-                Math.sin(nx * 6 + seed1) * Math.PI * 0.7 +
-                Math.cos(ny * 5 + seed2) * Math.PI * 0.6 +
-                (nx - 0.5) * Math.PI * 0.4 -
-                (ny - 0.5) * Math.PI * 0.4;
-
-              x += Math.cos(angle) * stepLen;
-              y += Math.sin(angle) * stepLen;
-
-              if (x < -size * 0.05 || x > size * 1.05 || y < -size * 0.05 || y > size * 1.05) {
-                break;
-              }
-              context.lineTo(x, y);
-            }
-            context.stroke();
-          }
-        }
-        context.globalAlpha = 1;
-
-        // 4) Tiny sparkles
-        const sparkCount = 220;
-        context.fillStyle = 'rgba(255,255,255,0.9)';
-        for (let i = 0; i < sparkCount; i++) {
-          const sx = rng() * size;
-          const sy = rng() * size;
-          const r = size * (rng() < 0.3 ? 0.0045 : 0.0025);
-          context.beginPath();
-          context.arc(sx, sy, r, 0, Math.PI * 2);
-          context.fill();
-        }
-      }
-
-      // Core renderer used for both on-screen and export
-      function renderQArtToCanvas(targetCanvas, size, text, seed) {
-        const targetCtx = targetCanvas.getContext('2d');
-
-        // Set up canvases
-        targetCanvas.width = size;
-        targetCanvas.height = size;
-        qrRawCanvas.width = size;
-        qrRawCanvas.height = size;
-        artCanvas.width = size;
-        artCanvas.height = size;
-
-        const rng = createRNG(seed);
-
-        // Draw art pattern into artCanvas
-        drawArtPattern(artCtx, size, rng);
-
-        // Generate raw QR (black/white) into qrRawCanvas
-        new QRious({
-          element: qrRawCanvas,
-          value: text,
-          size: size,
-          level: 'H',
-          background: '#ffffff',
-          foreground: '#000000'
-        });
-
-        const qrImageData  = qrRawCtx.getImageData(0, 0, size, size);
-        const qrData       = qrImageData.data;
-        const artImageData = artCtx.getImageData(0, 0, size, size);
-        const artData      = artImageData.data;
-        const outImageData = targetCtx.createImageData(size, size);
-        const outData      = outImageData.data;
-
-        // Mix QR modules with art colors
-        for (let i = 0; i < qrData.length; i += 4) {
-          const r = qrData[i];
-          const g = qrData[i + 1];
-          const b = qrData[i + 2];
-
-          if (r < 128 && g < 128 && b < 128) {
-            const ar = artData[i];
-            const ag = artData[i + 1];
-            const ab = artData[i + 2];
-
-            let [h, s, l] = rgbToHsl(ar, ag, ab);
-
-            s = Math.min(1, s * 1.8);
-            l = Math.min(0.45, l * 0.9);
-            if (l < 0.20) l = 0.20;
-
-            const [rr, gg, bb] = hslToRgb(h, s, l);
-
-            outData[i]     = rr;
-            outData[i + 1] = gg;
-            outData[i + 2] = bb;
-            outData[i + 3] = 255;
-          } else {
-            outData[i]     = 255;
-            outData[i + 1] = 255;
-            outData[i + 2] = 255;
-            outData[i + 3] = 255;
-          }
-        }
-
-        targetCtx.putImageData(outImageData, 0, 0);
-      }
-
-      function generateQRCode(text) {
-        const size = computeCanvasSize();
-        // New seed for this image; stored for exports
-        lastSeed = Math.floor(Math.random() * 1e9);
-        lastAddress = text;
-        renderQArtToCanvas(qrCanvas, size, text, lastSeed);
-      }
-
-      function downloadAtSize(pixelSize, label) {
-        if (!lastAddress || lastSeed === null) {
-          alert('Generate a QArt Code first.');
-          return;
-        }
-
-        const exportCanvas = document.createElement('canvas');
-        renderQArtToCanvas(exportCanvas, pixelSize, lastAddress, lastSeed);
-
-        const link = document.createElement('a');
-        const safeAddr = lastAddress.slice(0, 12).replace(/[^a-zA-Z0-9]+/g, '_');
-        link.download = `qart_${safeAddr}_${label}.png`;
-        link.href = exportCanvas.toDataURL('image/png');
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }
-
-      generateBtn.addEventListener('click', function() {
-        const address = addressInput.value.trim();
-        errorMsg.textContent = '';
-        
-        if 
+    document.addEventListener('DOMContentLoaded', detect);
+    btn.addEventListener('click', connect);
+  </script>
+</body>
+</html>
