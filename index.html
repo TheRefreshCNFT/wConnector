@@ -1122,40 +1122,26 @@
         const outImageData = targetCtx.createImageData(size, size);
         const outData      = outImageData.data;
 
-        // Mix QR with art/image colors
+        // Mix QR with art/image colors:
+        // - Dark QR modules: show whatever is on the artCanvas (code art or uploaded image)
+        // - Light QR modules: pure white
         for (let i = 0; i < qrData.length; i += 4) {
           const r = qrData[i];
           const g = qrData[i + 1];
           const b = qrData[i + 2];
 
           if (r < 128 && g < 128 && b < 128) {
+            // "Black" QR module – punch out from the art/image as-is
             const ar = artData[i];
             const ag = artData[i + 1];
             const ab = artData[i + 2];
 
-            if (currentMode === 'image') {
-              // IMAGE MODE: use the image pixel as-is, no brightness/contrast tweaks
-              outData[i]     = ar;
-              outData[i + 1] = ag;
-              outData[i + 2] = ab;
-              outData[i + 3] = 255;
-            } else {
-              // CODE MODE: keep the original stylized darkening logic
-              let [h, s, l] = rgbToHsl(ar, ag, ab);
-
-              s = Math.min(1, s * 1.8);
-              l = Math.min(0.45, l * 0.9);
-              if (l < 0.20) l = 0.20;
-
-              const [rr, gg, bb] = hslToRgb(h, s, l);
-
-              outData[i]     = rr;
-              outData[i + 1] = gg;
-              outData[i + 2] = bb;
-              outData[i + 3] = 255;
-            }
+            outData[i]     = ar;
+            outData[i + 1] = ag;
+            outData[i + 2] = ab;
+            outData[i + 3] = 255;
           } else {
-            // QR "white" modules stay pure white
+            // "White" QR module – solid white
             outData[i]     = 255;
             outData[i + 1] = 255;
             outData[i + 2] = 255;
@@ -1379,4 +1365,5 @@ async function connect() {
 
 </body>
 </html>
+
 
