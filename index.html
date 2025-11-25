@@ -401,6 +401,54 @@
       }
     }
 
+    /* --- Screenshot overlay for mobile screenshot flow --- */
+    #screenshotOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.94);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      z-index: 20;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    #screenshotOverlay img {
+      max-width: 100%;
+      max-height: 80vh;
+      border-radius: 16px;
+      background: #fff;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.9);
+    }
+
+    #screenshotClose {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      border: none;
+      border-radius: 999px;
+      padding: 0.4rem 0.9rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: rgba(0,0,0,0.7);
+      color: #fff;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+    }
+
+    #screenshotHint {
+      font-size: 0.85rem;
+      color: #d5ddff;
+      text-align: center;
+      max-width: 320px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
     /* --- WALLET GATE OVERLAY --- */
     #gateOverlay {
       position: fixed;
@@ -510,10 +558,6 @@
     select {
       flex: 1;
       background: white;
-    }
-
-    .hidden {
-      display: none !important;
     }
 
     .access-message {
@@ -725,6 +769,8 @@
             <button type="button" class="dl-btn" data-size="4096" data-label="4k">4K</button>
             <button type="button" class="dl-btn" data-size="8192" data-label="8k">8K</button>
             <button type="button" class="dl-btn" data-size="16384" data-label="16k">16K</button>
+            <!-- New screenshot view button -->
+            <button type="button" class="dl-btn" id="screenshotBtn">Screenshot View</button>
           </div>
         </div>
       </div>
@@ -736,12 +782,21 @@
           <li>Click "Generate QArt Code" to create a QR code</li>
           <li>Scan the QR code with any Cardano wallet</li>
           <li>Download and save to reuse, send, or frame</li>
+          <li>On mobile explorers: use <strong>Screenshot View</strong> and screenshot to save</li>
           <li>Cardano addresses start with "addr1"</li>
         </ul>
       </div>
     </div>
   </div>
 
+  <!-- Full-screen screenshot overlay -->
+  <div id="screenshotOverlay" class="hidden">
+    <button id="screenshotClose">✕ Close</button>
+    <img id="screenshotImage" alt="QArt Screenshot View">
+    <p id="screenshotHint">
+      On mobile wallet explorers, tap and hold to save the image, or take a screenshot to keep your QArt code.
+    </p>
+  </div>
 
   <!-- WALLET GATE OVERLAY -->
   <div id="gateOverlay">
@@ -798,6 +853,11 @@
       const addImageBtn       = document.getElementById('addImageBtn');
       const imageInstructions = document.getElementById('imageInstructions');
       const imageInput        = document.getElementById('imageFile');
+
+      const screenshotBtn     = document.getElementById('screenshotBtn');
+      const screenshotOverlay = document.getElementById('screenshotOverlay');
+      const screenshotImage   = document.getElementById('screenshotImage');
+      const screenshotClose   = document.getElementById('screenshotClose');
 
       // Offscreen canvases for raw QR and art / image pattern
       const qrRawCanvas  = document.createElement('canvas');
@@ -882,7 +942,7 @@
         };
       }
 
-      // --- Color helpers (for vibrant but still "dark" tiles) ---
+      // --- Color helpers (kept, but no longer used for stylizing the art) ---
       function rgbToHsl(r, g, b) {
         r /= 255; g /= 255; b /= 255;
         const max = Math.max(r, g, b), min = Math.min(r, g, b);
@@ -1122,16 +1182,14 @@
         const outImageData = targetCtx.createImageData(size, size);
         const outData      = outImageData.data;
 
-        // Mix QR with art/image colors:
-        // - Dark QR modules: show whatever is on the artCanvas (code art or uploaded image)
-        // - Light QR modules: pure white
+        // Mix QR with art/image colors
         for (let i = 0; i < qrData.length; i += 4) {
           const r = qrData[i];
           const g = qrData[i + 1];
           const b = qrData[i + 2];
 
           if (r < 128 && g < 128 && b < 128) {
-            // "Black" QR module – punch out from the art/image as-is
+            // QR "black" modules: use underlying art/image pixel as-is
             const ar = artData[i];
             const ag = artData[i + 1];
             const ab = artData[i + 2];
@@ -1141,7 +1199,7 @@
             outData[i + 2] = ab;
             outData[i + 3] = 255;
           } else {
-            // "White" QR module – solid white
+            // QR "white" modules stay pure white
             outData[i]     = 255;
             outData[i + 1] = 255;
             outData[i + 2] = 255;
@@ -1205,11 +1263,37 @@
       // Wire up download buttons
       const dlButtons = downloadControls.querySelectorAll('.dl-btn');
       dlButtons.forEach(btn => {
-        btn.addEventListener('click', function() {
-          const size  = parseInt(btn.getAttribute('data-size'), 10);
-          const label = btn.getAttribute('data-label') || (size / 1024 + 'k');
-          downloadAtSize(size, label);
-        });
+        const sizeAttr = btn.getAttribute('data-size');
+        if (sizeAttr) {
+          btn.addEventListener('click', function() {
+            const size  = parseInt(btn.getAttribute('data-size'), 10);
+            const label = btn.getAttribute('data-label') || (size / 1024 + 'k');
+            downloadAtSize(size, label);
+          });
+        }
+      });
+
+      // Screenshot View button (full-screen overlay, no "download" attribute)
+      screenshotBtn.addEventListener('click', () => {
+        if (!lastAddress || lastSeed === null) {
+          alert('Generate a QArt Code first.');
+          return;
+        }
+        // Use the currently rendered on-screen canvas
+        const dataUrl = qrCanvas.toDataURL('image/png');
+        screenshotImage.src = dataUrl;
+        screenshotOverlay.classList.remove('hidden');
+      });
+
+      screenshotClose.addEventListener('click', () => {
+        screenshotOverlay.classList.add('hidden');
+      });
+
+      // Optional: tap outside image to close
+      screenshotOverlay.addEventListener('click', (e) => {
+        if (e.target === screenshotOverlay) {
+          screenshotOverlay.classList.add('hidden');
+        }
       });
       
       // Sample address (will be overwritten by wallet address once connected)
@@ -1365,5 +1449,3 @@ async function connect() {
 
 </body>
 </html>
-
-
