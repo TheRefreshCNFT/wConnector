@@ -1135,9 +1135,17 @@
 
             let [h, s, l] = rgbToHsl(ar, ag, ab);
 
-            s = Math.min(1, s * 1.8);
-            l = Math.min(0.45, l * 0.9);
-            if (l < 0.20) l = 0.20;
+            if (currentMode === 'image') {
+              // Brighter mapping for uploaded image while keeping contrast
+              s = Math.min(1, s * 1.2);
+              l = Math.min(0.70, l * 1.1);
+              if (l < 0.25) l = 0.25;
+            } else {
+              // Original behavior for code-based art
+              s = Math.min(1, s * 1.8);
+              l = Math.min(0.45, l * 0.9);
+              if (l < 0.20) l = 0.20;
+            }
 
             const [rr, gg, bb] = hslToRgb(h, s, l);
 
@@ -1370,4 +1378,3 @@ async function connect() {
 
 </body>
 </html>
-
